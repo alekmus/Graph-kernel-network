@@ -6,7 +6,7 @@ import spektral
 class GKNet(tfk.Model):
     """[summary]
     """
-    def __init__(self, channels, depth, kernel_layers, activation=tf.nn.relu):
+    def __init__(self, channels, depth, kernel_layers, inputs, activation=tf.nn.relu):
         """[summary]
 
         Args:
@@ -18,17 +18,16 @@ class GKNet(tfk.Model):
         Returns:
             [type]: [description]
         """
-
-        super(GKNet, self).__init__()
+        super(GKNet, self).__init__(inputs=inputs)
+        
         self.depth = depth
         self.activation = activation
-        self.conv = spektral.layers.EdgeConditionedConv(channels, [kernel_layers], activation=tf.nn.relu)
-      
+        self.conv = spektral.layers.EdgeConditionedConv(channels, kernel_layers, activation=tf.nn.relu)
 
 
-        def call(self, inputs):
-            node_features, adjacency_matrix, edge_features = inputs
-            for i in range(self.depth):
-                node_features = self.activation(self.conv([node_features, adjacency_matrix, edge_features]))
-            
-            return node_features
+    def call(self, inputs):
+        node_features, adjacency_matrix, edge_features = inputs
+        for i in range(self.depth):
+            node_features = self.activation(self.conv([node_features, adjacency_matrix, edge_features]))
+        
+        return node_features
