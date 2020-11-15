@@ -3,37 +3,32 @@ import tensorflow.keras as tfk
 import spektral
 
 
-class GKNet(tf.Module):
+class GKNet(tfk.Model):
+    """[summary]
+    """
+    def __init__(self, channels, depth, kernel_layers, activation=tf.nn.relu):
+        """[summary]
 
-    def __init__(self,
-                 width,
-                 ker_width,
-                 depth,
-                 ker_in,
-                 in_width=1,
-                 out_width=1,
-                 name=None):
+        Args:
+            channels ([type]): [description]
+            depth ([type]): [description]
+            kernel_layers ([type]): [description]
+            activation ([type], optional): [description]. Defaults to tf.nn.relu.
+
+        Returns:
+            [type]: [description]
         """
-        :param width:
-        :param ker_width:
-        :param depth:
-        :param ker_in:
-        :param in_width:
-        :param out_width:
-        :param name:
-        """
-        super(GKNet, self).__init__(name=name)
+
+        super(GKNet, self).__init__()
         self.depth = depth
-        self.layers = []
+        self.activation = activation
+        self.conv = spektral.layers.EdgeConditionedConv(channels, [kernel_layers], activation=tf.nn.relu)
+      
 
-        kernel = generate_mlp(ker_in,
-                              ker_width,
-                              ker_width,
-                              width**2,
-                              activation)
-        self.GNN = spektral.layers.EdgeConditionedConv()
-    def generate_mlp(ker_in,
-                     ker_width,
-                     ker_width,
-                     width**2,
-                     activation):
+
+        def call(self, inputs):
+            node_features, adjacency_matrix, edge_features = inputs
+            for i in range(self.depth):
+                node_features = self.activation(self.conv([node_features, adjacency_matrix, edge_features]))
+            
+            return node_features
