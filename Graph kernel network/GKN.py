@@ -3,8 +3,6 @@ import tensorflow.keras as tfk
 import spektral
 
 class GKNet(tfk.models.Model):
-    """[summary]
-    """
     def __init__(self, 
                  channels, 
                  depth, 
@@ -27,9 +25,9 @@ class GKNet(tfk.models.Model):
         X = inputs[0]
         A = inputs[1]
         E = inputs[2]
-        
     
-        for i in range(self.depth):
-            X = self.conv_layers[i]([X, A, E])           
+        for conv_layer in self.conv_layers:
+            X = conv_layer([X, A, E])           
+
         return self.dense(self.pool(X))
        
