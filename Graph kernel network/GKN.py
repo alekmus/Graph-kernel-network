@@ -25,7 +25,7 @@ class GKNet(tfk.models.Model):
 
         self.conv_layers = []
 
-        for i in range(depth):
+        for _ in range(depth):
             self.conv_layers.append(spektral.layers.EdgeConditionedConv(channels, kernel_layers, activation=tf.nn.relu))
         
 
