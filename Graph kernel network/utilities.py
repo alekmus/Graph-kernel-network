@@ -40,7 +40,7 @@ def generate_radial_mesh(n_nodes):
     nodes = [(0,0)]
 
     for i in range(n_nodes):
-        nodes.append(0,i)
+        nodes.append((i,i))
 
     return np.array(nodes)
 
@@ -48,3 +48,7 @@ def generate_radial_mesh(n_nodes):
 import matplotlib.pyplot as plt
 
 
+a = generate_radial_mesh(20)
+x,y = a.T
+plt.scatter(x,y)
+plt.show()
