@@ -35,5 +35,16 @@ def build_connections(mesh, r, self_loops_allowed=False):
     sparse_distances = scipy.sparse.csr_matrix(distances[distance_mask])
     return sparse_adjacency, sparse_distances
 
-a = np.array([[0,0],[1,1],[3,3],[2.8,2.5]])
-print(build_connections(a,1))
+
+def generate_radial_mesh(n_nodes):
+    nodes = [(0,0)]
+
+    for i in range(n_nodes):
+        nodes.append(0,i)
+
+    return np.array(nodes)
+
+
+import matplotlib.pyplot as plt
+
+
