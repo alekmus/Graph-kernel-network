@@ -15,19 +15,25 @@ def generate_ball_neighbourhoods(vectors, r):
     return distance_mask, distances
 
 
-def build_connections(mesh, r):
+def build_connections(mesh, r, self_loops_allowed=False):
     """Generates adjacency and edge feature matrices for nodes in a mesh
         based Euclidean neighbourhoods defined by a ball B(x,r) for each
         node x. 
     Args:
         mesh (numpy.ndarray): An array of nodes forming a mesh. 
         r (float): Radius of the desired ball neighbourhood.
+        self_loops_allowed (boolean, optional): Boolean determining if nodes
+                                                should have connection to themselves. 
+                                                Defaults to False.
     """
     distance_mask, distances = generate_ball_neighbourhoods(mesh, r)
-    sparse_adjacency = scipy.sparse.csr_matrix(distance_mask)
 
-    distances = distances[distance_mask]
-    return sparse_adjacency, distances
+    if(not self_loops_allowed):
+        np.fill_diagonal(distance_mask, False)
+
+    sparse_adjacency = scipy.sparse.csr_matrix(distance_mask)
+    sparse_distances = scipy.sparse.csr_matrix(distances[distance_mask])
+    return sparse_adjacency, sparse_distances
 
 a = np.array([[0,0],[1,1],[3,3],[2.8,2.5]])
 print(build_connections(a,1))
