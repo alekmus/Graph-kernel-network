@@ -1,13 +1,18 @@
+from typing import Tuple
 import sklearn.metrics as skm
 import scipy.sparse
 import numpy as np
 
-def generate_ball_neighbourhoods(vectors, r):
+def generate_ball_neighbourhoods(vectors, r) -> Tuple(np.ndarray, np.ndarray):
     """Connects input vectors into neighbourhoods based on Euclidean distance.
 
     Args:
         vectors (numpy.ndarray): An array of Euclidean vectors.
         r (float): Radius of the ball used to determine neighbourhoods of vectors. 
+
+    Returns:
+        Tuple: A dense boolean matrix that determines if the distance between two nodes
+            is under r and a dense boolean matrix with actual distances.
     """
     distances = skm.pairwise_distances(vectors)
     distance_mask = distances <= r
@@ -15,7 +20,7 @@ def generate_ball_neighbourhoods(vectors, r):
     return distance_mask, distances
 
 
-def build_connections(mesh, r, self_loops_allowed=False):
+def build_connections(mesh, r, self_loops_allowed=False) -> Tuple(scipy.sparse.csr_matrix, scipy.sparse.csr_matrix):
     """Generates adjacency and edge feature matrices for nodes in a mesh
         based Euclidean neighbourhoods defined by a ball B(x,r) for each
         node x. 
@@ -26,7 +31,7 @@ def build_connections(mesh, r, self_loops_allowed=False):
                                                 should have connection to themselves. 
                                                 Defaults to False.
     Returns:
-        tuples: The adjacency matrix and distances between nodes in scipy.sparse.csr_matrix form
+        Tuple: An adjacency matrix and distances between nodes
     """
     distance_mask, distances = generate_ball_neighbourhoods(mesh, r)
 
@@ -38,7 +43,7 @@ def build_connections(mesh, r, self_loops_allowed=False):
     return sparse_adjacency, sparse_distances
 
 
-def generate_2D_radial_mesh_equidistant(n_circles=10):
+def generate_2D_radial_mesh_equidistant(n_circles=10) -> Tuple(np.ndarray, np.ndarray):
     """Generates a mesh for a unit disk where nodes are arranged
         into consentric circles with equal arc length between them
 
@@ -46,7 +51,7 @@ def generate_2D_radial_mesh_equidistant(n_circles=10):
         n_circles (int, optional): Number of concentric circles. Defaults to 10.
 
     Returns:
-        tuple: The x and y coordinates for the nodes in numpy.ndarrays.
+        Tuple: The x and y coordinates for the nodes in numpy.ndarrays.
     """
     # Initalize node lists with origin.
     # Coordinates are in separate lists to make plotting easier
@@ -72,7 +77,7 @@ def generate_2D_radial_mesh_equidistant(n_circles=10):
 
 
 
-def generate_2D_radial_mesh_square_grid(n_nodes):
+def generate_2D_radial_mesh_square_grid(n_nodes)-> Tuple(np.ndarray, np.ndarray):
     """Generates a mesh of a unit disk. Note that the method
         uses n_nodes to construct a square grid and discards
         coordinates outside the disk so the returned mesh
