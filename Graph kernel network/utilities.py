@@ -3,7 +3,7 @@ import sklearn.metrics as skm
 import scipy.sparse
 import numpy as np
 
-def generate_ball_neighbourhoods(vectors, r) -> Tuple(np.ndarray, np.ndarray):
+def generate_ball_neighbourhoods(vectors, r) -> Tuple[np.ndarray, np.ndarray]:
     """Connects input vectors into neighbourhoods based on Euclidean distance.
 
     Args:
@@ -20,7 +20,7 @@ def generate_ball_neighbourhoods(vectors, r) -> Tuple(np.ndarray, np.ndarray):
     return distance_mask, distances
 
 
-def build_connections(mesh, r, self_loops_allowed=False) -> Tuple(scipy.sparse.csr_matrix, scipy.sparse.csr_matrix):
+def build_connections(mesh, r, self_loops_allowed=False) -> Tuple[scipy.sparse.csr_matrix, scipy.sparse.csr_matrix]:
     """Generates adjacency and edge feature matrices for nodes in a mesh
         based Euclidean neighbourhoods defined by a ball B(x,r) for each
         node x. 
@@ -43,7 +43,7 @@ def build_connections(mesh, r, self_loops_allowed=False) -> Tuple(scipy.sparse.c
     return sparse_adjacency, sparse_distances
 
 
-def generate_2D_radial_mesh_equidistant(n_circles=10) -> Tuple(np.ndarray, np.ndarray):
+def generate_2D_radial_mesh_equidistant(n_circles=10) -> Tuple[np.ndarray, np.ndarray]:
     """Generates a mesh for a unit disk where nodes are arranged
         into consentric circles with equal arc length between them
 
@@ -77,7 +77,7 @@ def generate_2D_radial_mesh_equidistant(n_circles=10) -> Tuple(np.ndarray, np.nd
 
 
 
-def generate_2D_radial_mesh_square_grid(n_nodes)-> Tuple(np.ndarray, np.ndarray):
+def generate_2D_radial_mesh_square_grid(n_nodes)-> Tuple[np.ndarray, np.ndarray]:
     """Generates a mesh of a unit disk. Note that the method
         uses n_nodes to construct a square grid and discards
         coordinates outside the disk so the returned mesh
@@ -105,6 +105,5 @@ import matplotlib.pyplot as plt
 
 
 x,y = generate_2D_radial_mesh_equidistant(5)
-print(type(x))
 plt.scatter(x,y)
 plt.show()
