@@ -11,7 +11,7 @@ def generate_ball_neighbourhoods(vectors, r) -> Tuple[np.ndarray, np.ndarray]:
         r (float): Radius of the ball used to determine neighbourhoods of vectors. 
 
     Returns:
-        Tuple: A dense boolean matrix that determines if the distance between two nodes
+        tuple: A dense boolean matrix that determines if the distance between two nodes
             is under r and a dense boolean matrix with actual distances.
     """
     distances = skm.pairwise_distances(vectors)
@@ -31,7 +31,7 @@ def build_connections(mesh, r, self_loops_allowed=False) -> Tuple[scipy.sparse.c
                                                 should have connection to themselves. 
                                                 Defaults to False.
     Returns:
-        Tuple: An adjacency matrix and distances between nodes
+        tuple: An adjacency matrix and distances between nodes
     """
     distance_mask, distances = generate_ball_neighbourhoods(mesh, r)
 
@@ -51,7 +51,7 @@ def generate_2D_radial_mesh_equidistant(n_circles=10) -> Tuple[np.ndarray, np.nd
         n_circles (int, optional): Number of concentric circles. Defaults to 10.
 
     Returns:
-        Tuple: The x and y coordinates for the nodes in numpy.ndarrays.
+        tuple: The x and y coordinates for the nodes in numpy.ndarrays.
     """
     # Initalize node lists with origin.
     # Coordinates are in separate lists to make plotting easier
