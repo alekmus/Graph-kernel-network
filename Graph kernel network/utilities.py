@@ -2,7 +2,6 @@ from typing import Tuple
 import sklearn.metrics as skm
 import scipy.sparse
 import numpy as np
-import random
 
 from sklearn.metrics.pairwise import distance_metrics
 

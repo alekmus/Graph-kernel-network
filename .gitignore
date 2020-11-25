@@ -3,3 +3,4 @@ Graph kernel network/sample.py
 Graph kernel network/__pycache__/
 Graph kernel network/.venv/
 Graph kernel network/.vscode/
+Graph kernel network/data/
