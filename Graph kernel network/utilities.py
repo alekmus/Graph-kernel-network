@@ -2,7 +2,7 @@ from typing import Tuple
 import sklearn.metrics as skm
 import scipy.sparse
 import numpy as np
-
+import scipy.spatial as sspa
 from sklearn.metrics.pairwise import distance_metrics
 
 def generate_ball_neighbourhoods(vectors, r) -> Tuple[np.ndarray, np.ndarray]:
@@ -22,7 +22,7 @@ def generate_ball_neighbourhoods(vectors, r) -> Tuple[np.ndarray, np.ndarray]:
     return distance_mask, distances
 
 
-def build_connections(mesh, r, self_loops_allowed=False) -> Tuple[scipy.sparse.csr_matrix, scipy.sparse.csr_matrix]:
+def build_connections(nodes, r, self_loops_allowed=False) -> Tuple[scipy.sparse.csr_matrix, scipy.sparse.csr_matrix]:
     """Generates adjacency and edge feature matrices for nodes in a mesh
         based Euclidean neighbourhoods defined by a ball B(x,r) for each
         node x. 
@@ -35,7 +35,7 @@ def build_connections(mesh, r, self_loops_allowed=False) -> Tuple[scipy.sparse.c
     Returns:
         tuple: An adjacency matrix and distances between nodes
     """
-    distance_mask, distances = generate_ball_neighbourhoods(mesh, r)
+    distance_mask, distances = generate_ball_neighbourhoods(nodes, r)
 
     if(not self_loops_allowed):
         np.fill_diagonal(distance_mask, False)
@@ -45,7 +45,7 @@ def build_connections(mesh, r, self_loops_allowed=False) -> Tuple[scipy.sparse.c
     return sparse_adjacency, sparse_distances
 
 
-def generate_2D_radial_mesh_equidistant(n_circles=10) -> Tuple[np.ndarray, np.ndarray]:
+def generate_2D_radial_coordinates_equidistant(n_circles=10) -> Tuple[np.ndarray, np.ndarray]:
     """Generates a mesh for a unit disk where nodes are arranged
         into consentric circles with equal arc length between them
 
@@ -79,7 +79,7 @@ def generate_2D_radial_mesh_equidistant(n_circles=10) -> Tuple[np.ndarray, np.nd
 
 
 
-def generate_2D_radial_mesh_square_grid(n_nodes)-> Tuple[np.ndarray, np.ndarray]:
+def generate_2D_radial_coordinates_square_grid(n_nodes)-> Tuple[np.ndarray, np.ndarray]:
     """Generates a mesh of a unit disk. Note that the method
         uses n_nodes to construct a square grid and discards
         coordinates outside the disk so the returned mesh
@@ -103,7 +103,7 @@ def generate_2D_radial_mesh_square_grid(n_nodes)-> Tuple[np.ndarray, np.ndarray]
     return xx[distance_mask], yy[distance_mask]
 
 
-def insert_2D_disk_inclusion_to_mesh(mesh, center_coordinate, r) -> Tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
+def insert_2D_disk_inclusion_to_coordinates(nodes, center_coordinate, r) -> Tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     """Splits a mesh into two parts by separating a ball B(center_coordinate, r)
         from the rest of the mesh.
     Args:
@@ -115,13 +115,13 @@ def insert_2D_disk_inclusion_to_mesh(mesh, center_coordinate, r) -> Tuple[np.nda
         tuple: (x, y) coordinates for all nodes not in the inclusion and (x, y) coordinates in
                 the inclusion.
     """
-    x, y = mesh
+    x, y = nodes
     distance_mask = np.linalg.norm(((x-center_coordinate[0]), (y-center_coordinate[1])),axis=0) < r
     return (x[~distance_mask], y[~distance_mask]), (x[distance_mask], y[distance_mask])
 
 
 
-def random_2D_disk_inclusion(mesh)-> Tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
+def random_2D_disk_inclusion(nodes)-> Tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     """Creates a random 2D disk inclusion into mesh. The inclusion lies completely in the 
         interior of the mesh.
 
@@ -130,7 +130,7 @@ def random_2D_disk_inclusion(mesh)-> Tuple[np.ndarray,np.ndarray,np.ndarray,np.n
                 the inclusion.
     """
     rand_x, rand_y, rand_r = np.random.rand(3)
-    x,y = mesh
+    x,y = nodes
     # Choose closest actual node to the random vector to make sure the inclusion 
     # is centered around an actual node.
     distances = np.linalg.norm((x-rand_x, y-rand_y),axis=0)
@@ -141,16 +141,42 @@ def random_2D_disk_inclusion(mesh)-> Tuple[np.ndarray,np.ndarray,np.ndarray,np.n
         distances = np.linalg.norm((x-rand_x, y-rand_y),axis=0)
         i = np.argmin(distances)
     
-    return insert_2D_disk_inclusion_to_mesh(mesh, (x[i], y[i]), rand_r)
+    return insert_2D_disk_inclusion_to_coordinates(nodes, (x[i], y[i]), rand_r)
 
 
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
+def centroids_from_tris(triangles):
+    """Computes centroids for triangles
 
-    fig = plt.figure(figsize=(10,10))
-    mesh = generate_2D_radial_mesh_equidistant(150)
-    normal, inclusion = (random_2D_disk_inclusion(mesh))
-    
-    plt.scatter(normal[0], normal[1])
-    plt.scatter(inclusion[0], inclusion[1])
+    Args:
+        triangles (scipy.spatial.qhull.Delaunay): Triangles
+
+    Returns:
+        np.ndarray: Centroid coordinates for each triangle
+    """
+    return np.mean(triangles.points[triangles.simplices],axis=1)
+
+
+def mesh_from_nodes(nodes):
+    """Creates a triangular mesh from points.
+
+    Args:
+        nodes (np.ndarray): Coordinates for nodes
+
+    Returns:
+        Scipy.spatial.qhull.Delaunay: Triangle mesh 
+    """
+    x, y = nodes
+    return sspa.Delaunay(np.concatenate([x.reshape(-1,1), y.reshape(-1,1)], axis=1), qhull_options='QJ')
+
+if __name__ == '__main__':
+    nodes = generate_2D_radial_coordinates_equidistant(10)
+    x,y = nodes
+    tris = mesh_from_nodes(nodes)
+    print(type(tris))
+    import matplotlib.pyplot as plt 
+    centroids = centroids_from_tris(tris)
+
+    plt.triplot(x,y, tris.simplices)
+    plt.scatter(centroids[:,0], centroids[:,1])
     plt.show()
+  
