@@ -145,7 +145,7 @@ def random_2D_disk_inclusion(nodes)-> Tuple[np.ndarray,np.ndarray,np.ndarray,np.
 
 
 def centroids_from_tris(triangles):
-    """Computes centroids for triangles
+    """Computes centroids for triangles.
 
     Args:
         triangles (scipy.spatial.qhull.Delaunay): Triangles
@@ -168,14 +168,17 @@ def mesh_from_nodes(nodes):
     x, y = nodes
     return sspa.Delaunay(np.concatenate([x.reshape(-1,1), y.reshape(-1,1)], axis=1), qhull_options='QJ')
 
+
+
 if __name__ == '__main__':
-    nodes = generate_2D_radial_coordinates_equidistant(10)
+    nodes = generate_2D_radial_coordinates_equidistant(5)
     x,y = nodes
     tris = mesh_from_nodes(nodes)
-    print(type(tris))
+    print(tris.neighbors)
+    exit()
     import matplotlib.pyplot as plt 
     centroids = centroids_from_tris(tris)
-
+    fig = plt.figure(figsize=(10,10))
     plt.triplot(x,y, tris.simplices)
     plt.scatter(centroids[:,0], centroids[:,1])
     plt.show()
