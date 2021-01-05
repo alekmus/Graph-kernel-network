@@ -174,7 +174,7 @@ if __name__ == '__main__':
     nodes = generate_2D_radial_coordinates_equidistant(5)
     x,y = nodes
     tris = mesh_from_nodes(nodes)
-    print(tris.neighbors)
+    print(tris.simplices)
     exit()
     import matplotlib.pyplot as plt 
     centroids = centroids_from_tris(tris)
