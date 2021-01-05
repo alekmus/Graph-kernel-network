@@ -144,16 +144,17 @@ def random_2D_disk_inclusion(nodes)-> Tuple[np.ndarray,np.ndarray,np.ndarray,np.
     return insert_2D_disk_inclusion_to_coordinates(nodes, (x[i], y[i]), rand_r)
 
 
-def centroids_from_tris(triangles):
+def centroids_from_tris(nodes, tris):
     """Computes centroids for triangles.
 
     Args:
-        triangles (scipy.spatial.qhull.Delaunay): Triangles
+        nodes (np.ndarray): Array of node coordinates
+        tris (np.ndarray): Array of indices for triangles
 
     Returns:
         np.ndarray: Centroid coordinates for each triangle
     """
-    return np.mean(triangles.points[triangles.simplices],axis=1)
+    return np.mean(nodes[tris],axis=1)
 
 
 def mesh_from_nodes(nodes):
