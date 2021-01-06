@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import utilities
 
-def read_forward_model(mat_file):
-    """Reads an EIDORS forward model saved as a .mat from a given location and outputs 
+def read_geometry(mat_file):
+    """Reads an EIDORS forward model from a .mat file and outputs 
        node coordinates, element triangles and indices of the electrode locations, respectively.
     Args:
-        mat_file (dict): Matlab file accessed with scipy.io
+        mat_file (dict): Matlab .mat file accessed with scipy.io
     
     Returns:
         tuple: (Coordinates for nodes, triangle indices, electrode node indices)
@@ -51,16 +51,48 @@ def load_data_from_mat(file_location):
         'fmod' is an EIDORS forward model
         'stim' is an EIDORS stimulation object
         'data' contains the result of EIDORS fwd_solve function
+
+    Returns:
+        np.ndarray: Stimulation patterns
     """
-    f = sio.loadmat(file_location, struct_as_record=False)
-    return read_forward_model(f)
+    mat_file = sio.loadmat(file_location, struct_as_record=False)
+    stim_pattern, meas_pattern = read_patterns(mat_file)
+    nodes, tris, electrode_nodes = read_geometry(mat_file)
+
+    # Read measurements given by electrodes.
+    # Measurements are given in a single array whereas the indices
+    # of the measurement patterns are split based on possible configurations 
+    meas = read_electrode_measurements(mat_file)
+
+    return nodes, tris, electrode_nodes, stim_pattern, meas_pattern, meas
 
 
-def read_stimulation_patterns():
-    pass
+def read_electrode_measurements(mat_file):
+    return mat_file['data'][0,0].meas
+
+def read_patterns(mat_file):
+    """Reads an EIDORS stimulation and measurement pattern saved as a .mat from a given location.
+    Args:
+        mat_file (dict): Matlab .mat file accessed with scipy.io
+    
+    Returns:
+        np.ndarray: Stimulation patterns
+    """
+    stim_patterns = []
+    meas_patterns = []
+
+    # Read patterns and convert them to dense representation
+    # Dense matrices might not be what we want, but we'll see
+    for stim in mat_file['stim'][0]:
+        stim_patterns.append(stim.stim_pattern.toarray().flatten())
+        meas_patterns.append(stim.meas_pattern.toarray())
+
+    # Convert lists to numpy arrays before returning for easier manipulation
+    return np.array(stim_patterns), np.array(meas_patterns)
+
 if __name__ == '__main__':
     
-    nodes, tris, electrode_nodes = load_data_from_mat(r'data\data.mat')
+    nodes, tris, electrode_nodes, stim_pattern, meas_pattern, meas = load_data_from_mat(r'data\data.mat')
     x = nodes[:, 0]
     y = nodes[:, 1]
 
