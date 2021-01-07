@@ -22,7 +22,7 @@ def generate_ball_neighbourhoods(vectors, r) -> Tuple[np.ndarray, np.ndarray]:
     return distance_mask, distances
 
 
-def build_connections(nodes, r, self_loops_allowed=False) -> Tuple[scipy.sparse.csr_matrix, scipy.sparse.csr_matrix]:
+def build_connections(nodes, r=0.1, self_loops_allowed=False) -> Tuple[scipy.sparse.csr_matrix, scipy.sparse.csr_matrix]:
     """Generates adjacency and edge feature matrices for nodes in a mesh
         based Euclidean neighbourhoods defined by a ball B(x,r) for each
         node x. 

@@ -51,7 +51,7 @@ def load_data_from_mat(file_location):
         'fmod' is an EIDORS forward model
         'stim' is an EIDORS stimulation object
         'data' contains the result of EIDORS fwd_solve function
-
+        'img' contains and EIDORS image object with conductivity distribution information
     Returns:
         np.ndarray: Stimulation patterns
     """
@@ -63,11 +63,21 @@ def load_data_from_mat(file_location):
     # Measurements are given in a single array whereas the indices
     # of the measurement patterns are split based on possible configurations 
     meas = read_electrode_measurements(mat_file)
+    conductivity = load_conductivity(mat_file)
+    return nodes, tris, electrode_nodes, stim_pattern, meas_pattern, meas, conductivity
 
-    return nodes, tris, electrode_nodes, stim_pattern, meas_pattern, meas
-
+def load_conductivity(mat_file):
+    return mat_file['img'][0,0].elem_data.astype(float).flatten()
 
 def read_electrode_measurements(mat_file):
+    """Reads measurement data from a Matlab file
+
+    Args:
+        mat_file (dict): Matlab .mat file accessed with scipy.io
+
+    Returns:
+        np.ndarray: Measurement data
+    """
     return mat_file['data'][0,0].meas
 
 def read_patterns(mat_file):
@@ -92,7 +102,7 @@ def read_patterns(mat_file):
 
 if __name__ == '__main__':
     
-    nodes, tris, electrode_nodes, stim_pattern, meas_pattern, meas = load_data_from_mat(r'data\data.mat')
+    nodes, tris, electrode_nodes, stim_pattern, meas_pattern, meas, conductivity = load_data_from_mat(r'data\data.mat')
     x = nodes[:, 0]
     y = nodes[:, 1]
 
@@ -101,9 +111,29 @@ if __name__ == '__main__':
     ex, ey = compute_electrode_midpoints(nodes, electrode_nodes)
 
     centroids = utilities.centroids_from_tris(nodes, tris)
+
+    
+    
+    
     plt.figure(figsize=(10,10))
-    plt.triplot(x,y,tris)
-    plt.scatter(centroids[:,0],centroids[:,1],zorder =10)
-    plt.scatter(x,y, c = c[:,0], zorder = 10)
+    #plt.triplot(x,y,tris)
+    #plt.scatter(x,y, zorder = 10)
+
+    #plt.scatter(x,y, c = c[:,0], zorder = 10)
     plt.scatter(ex,ey, c = 'm', zorder=20)
+
+    #plt.tripcolor(x,y,tris, facecolors = conductivity, edgecolors ='k',cmap='Greys')
+    plt.scatter(centroids[:,0],centroids[:,1],zorder =10)
+   
+    plt.scatter(centroids[:,0],centroids[:,1],c=conductivity, zorder =10, cmap='Greys')
+    midpoint_nodes = np.vstack([ex,ey]).T
+    centroids = np.append(centroids,midpoint_nodes,axis=0)
+    conn,_ = utilities.generate_ball_neighbourhoods(centroids,0.3)
+
+    for cs in conn:
+        n = centroids[cs]
+        for i in range(len(n)):
+            for j in range(i+1, len(n)):
+                plt.plot([n[i,0],n[j,0]],[n[i,1],n[j,1]], c='k')
+        
     plt.show()
