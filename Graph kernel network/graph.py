@@ -4,6 +4,20 @@ import data_loading
 from typing import Tuple
 import scipy.sparse
 import numpy as np
+from pathlib import Path
+import os
+
+class EIT_dataset(spektral.data.Dataset):
+    def __init__(self, **kwargs):
+        path = os.path.dirname(os.path.realpath(__file__))
+        spektral.datasets.utils.DATASET_FOLDER = path
+        print(self.path)
+        super().__init__(**kwargs)
+    def download(self):
+        pass
+
+    def path(self):
+        return os.path.join('C:Aleksi', self.__class__.__name__)
 
 
 class mat_graph(spektral.data.Graph):
@@ -20,7 +34,6 @@ class mat_graph(spektral.data.Graph):
         # It could however be added by simply as a node feature.
         node_features = self.construct_node_features(node_coords, electrode_coords, stimulation_pattern, conductivity)
         target_measurements = self.construct_targets(node_coords, measurement_pattern, measurement)
-        print(target_measurements)
         super().__init__(x = node_features, a = adjacency_matrix, e = edge_features, y = target_measurements)
 
 
@@ -60,7 +73,7 @@ class mat_graph(spektral.data.Graph):
             np.array: Targets for each node.
         """
         target = np.zeros((node_coords.shape[0]))
-        electrode_targets = np.zeros((measurement_pattern.shape[0]))
+        electrode_targets = np.zeros((measurement_pattern.shape))
         
         electrode_targets[(measurement_pattern<0) | (measurement_pattern>0)] = measurement
         return np.concatenate([target, electrode_targets], axis=0)
@@ -87,23 +100,29 @@ class mat_graph_factory():
         self.electrode_coords = data_loading.compute_electrode_midpoints(coords, self.electrode_indices)
         self.adj, self.edge_feats = self.build_connections(np.concatenate([self.nodes, self.electrode_coords],axis=0))
 
-        mat_graph(self.nodes, 
-                  self.adj, 
-                  self.edge_feats, 
-                  self.electrode_coords, 
-                  self.stim_patterns[0], 
-                  self.meas_patterns[0][0],
-                  self.meas[0], 
-                  self.conductivity)
+        
     
-    def generate_graphs():
+    def generate_graphs(self):
         """Generates all samples from a single .mat file by iterating over 
            all the measurement and stimulation patterns given by it.
         Returns:
-        #TODO some datatype, read spektral documentation to avoid suboptimal choice
-            : 
+            list: Graphs  
         """
-        pass
+        graphs = []
+        meas_idx = 0
+        for i, stim_p in enumerate(self.stim_patterns):
+            for meas_p in self.meas_patterns[i]:
+                graphs.append(mat_graph(self.nodes, 
+                                        self.adj, 
+                                        self.edge_feats, 
+                                        self.electrode_coords, 
+                                        stim_p, 
+                                        meas_p,
+                                        self.meas[meas_idx], 
+                                        self.conductivity))
+                meas_idx += 1
+
+        return graphs
 
     def build_connections(self, nodes, r=0.1, self_loops_allowed=False) -> Tuple[scipy.sparse.csr_matrix, scipy.sparse.csr_matrix]:
         """Generates adjacency and edge feature matrices for nodes in a mesh
@@ -128,4 +147,4 @@ class mat_graph_factory():
         return sparse_adjacency, sparse_distances
 
 if __name__ == "__main__":
-    mat_graph_factory(r'data\data.mat')
+    a= EIT_dataset()
