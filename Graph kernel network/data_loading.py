@@ -16,7 +16,6 @@ def read_geometry(mat_file):
     nodes = mat_file['fmod'][0,0].nodes
     tris = mat_file['fmod'][0,0].elems-1
 
-    #As many indices as there are electrodes [0,i]
     electrode_nodes = np.array([])
     for el in mat_file['fmod'][0,0].electrode[0]:
         electrode_nodes = np.append(electrode_nodes,el.nodes)
@@ -35,12 +34,14 @@ def compute_electrode_midpoints(all_nodes, electrode_nodes):
     Returns:
         np.ndarray: Coordinates for t
     """
+    # Find coordinates of the electrode nodes
     el_locs = all_nodes[electrode_nodes]
-    
     el_locs = el_locs.reshape(-1,2,2)
+
+    # CEM electrodes in EIDORS consist of two boundary nodes and the connected edge.
+    # Construct a new node located in the middle of the edge that represent this construct.
     el_locs = np.sum(el_locs*0.5, axis=1)
-    ex, ey = el_locs[:,0], el_locs[:,1]
-    return ex, ey
+    return el_locs
 
 
 def load_data_from_mat(file_location):
@@ -53,7 +54,13 @@ def load_data_from_mat(file_location):
         'data' contains the result of EIDORS fwd_solve function
         'img' contains and EIDORS image object with conductivity distribution information
     Returns:
-        np.ndarray: Stimulation patterns
+        dict: Dictionary {"nodes":node locations,
+                          "tris": indices of triangle endpoints, 
+                          "electrode_nodes": indices of electrode nodes,
+                          "stim_pattern": stimulation patterns,
+                          "meas_pattern": measurement patterns, 
+                          "measurements": measurements at electrodes for each measurement pattern, 
+                          "conductivity": conductivity distribution within the object}
     """
     mat_file = sio.loadmat(file_location, struct_as_record=False)
     stim_pattern, meas_pattern = read_patterns(mat_file)
@@ -64,10 +71,18 @@ def load_data_from_mat(file_location):
     # of the measurement patterns are split based on possible configurations 
     meas = read_electrode_measurements(mat_file)
     conductivity = load_conductivity(mat_file)
-    return nodes, tris, electrode_nodes, stim_pattern, meas_pattern, meas, conductivity
+    return {"nodes":nodes,
+            "tris": tris,
+            "electrode_nodes": electrode_nodes,
+            "stim_pattern": stim_pattern,
+            "meas_pattern": meas_pattern,
+            "measurements": meas,
+            "conductivity": conductivity}
+
 
 def load_conductivity(mat_file):
     return mat_file['img'][0,0].elem_data.astype(float).flatten()
+
 
 def read_electrode_measurements(mat_file):
     """Reads measurement data from a Matlab file
@@ -79,6 +94,7 @@ def read_electrode_measurements(mat_file):
         np.ndarray: Measurement data
     """
     return mat_file['data'][0,0].meas
+
 
 def read_patterns(mat_file):
     """Reads an EIDORS stimulation and measurement pattern saved as a .mat from a given location.
@@ -100,34 +116,47 @@ def read_patterns(mat_file):
     # Convert lists to numpy arrays before returning for easier manipulation
     return np.array(stim_patterns), np.array(meas_patterns)
 
+
 if __name__ == '__main__':
-    
-    nodes, tris, electrode_nodes, stim_pattern, meas_pattern, meas, conductivity = load_data_from_mat(r'data\data.mat')
+    d  = load_data_from_mat(r'data\data.mat')
+    nodes =d['nodes']
+    tris = d['tris'] 
+    electrode_nodes = d['electrode_nodes']
+    stim_pattern = d['stim_pattern']
+    meas_pattern = d['meas_pattern'] 
+    meas = d['measurements'] 
+    conductivity = d['conductivity']
     x = nodes[:, 0]
     y = nodes[:, 1]
-
+    
     c = np.full(nodes.shape,'blue')
     c[electrode_nodes] = 'red'
-    ex, ey = compute_electrode_midpoints(nodes, electrode_nodes)
-
+    el_locs = compute_electrode_midpoints(nodes, electrode_nodes)
+    ex, ey = el_locs[:,0], el_locs[:,1]
     centroids = utilities.centroids_from_tris(nodes, tris)
 
     
+    print(conductivity.shape)
+    print(centroids.shape)
+    print(electrode_nodes.shape)
     
     
     plt.figure(figsize=(10,10))
     #plt.triplot(x,y,tris)
     #plt.scatter(x,y, zorder = 10)
 
-    #plt.scatter(x,y, c = c[:,0], zorder = 10)
+    #plt.scatter(x,y, c = 'white', zorder = 1)
     plt.scatter(ex,ey, c = 'm', zorder=20)
-
-    #plt.tripcolor(x,y,tris, facecolors = conductivity, edgecolors ='k',cmap='Greys')
+    
+    plt.tripcolor(x,y,tris, facecolors = conductivity, edgecolors ='k',cmap='Greys')
     plt.scatter(centroids[:,0],centroids[:,1],zorder =10)
    
-    plt.scatter(centroids[:,0],centroids[:,1],c=conductivity, zorder =10, cmap='Greys')
+    #plt.scatter(centroids[:,0],centroids[:,1],c=conductivity, zorder =10, cmap='Greys')
     midpoint_nodes = np.vstack([ex,ey]).T
+
     centroids = np.append(centroids,midpoint_nodes,axis=0)
+
+    """
     conn,_ = utilities.generate_ball_neighbourhoods(centroids,0.3)
 
     for cs in conn:
@@ -135,5 +164,5 @@ if __name__ == '__main__':
         for i in range(len(n)):
             for j in range(i+1, len(n)):
                 plt.plot([n[i,0],n[j,0]],[n[i,1],n[j,1]], c='k')
-        
+    """
     plt.show()

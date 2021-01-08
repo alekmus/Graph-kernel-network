@@ -22,29 +22,6 @@ def generate_ball_neighbourhoods(vectors, r) -> Tuple[np.ndarray, np.ndarray]:
     return distance_mask, distances
 
 
-def build_connections(nodes, r=0.1, self_loops_allowed=False) -> Tuple[scipy.sparse.csr_matrix, scipy.sparse.csr_matrix]:
-    """Generates adjacency and edge feature matrices for nodes in a mesh
-        based Euclidean neighbourhoods defined by a ball B(x,r) for each
-        node x. 
-    Args:
-        mesh (numpy.ndarray): An array of nodes forming a mesh. 
-        r (float): Radius of the desired ball neighbourhood.
-        self_loops_allowed (boolean, optional): Boolean determining if nodes
-                                                should have connection to themselves. 
-                                                Defaults to False.
-    Returns:
-        tuple: An adjacency matrix and distances between nodes
-    """
-    distance_mask, distances = generate_ball_neighbourhoods(nodes, r)
-
-    if(not self_loops_allowed):
-        np.fill_diagonal(distance_mask, False)
-
-    sparse_adjacency = scipy.sparse.csr_matrix(distance_mask)
-    sparse_distances = scipy.sparse.csr_matrix(distances[distance_mask])
-    return sparse_adjacency, sparse_distances
-
-
 def generate_2D_radial_coordinates_equidistant(n_circles=10) -> Tuple[np.ndarray, np.ndarray]:
     """Generates a mesh for a unit disk where nodes are arranged
         into consentric circles with equal arc length between them
