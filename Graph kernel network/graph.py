@@ -4,21 +4,56 @@ import data_loading
 from typing import Tuple
 import scipy.sparse
 import numpy as np
-from pathlib import Path
 import os
+import pickle
 
 class EIT_dataset(spektral.data.Dataset):
-    def __init__(self, **kwargs):
-        path = os.path.dirname(os.path.realpath(__file__))
-        spektral.datasets.utils.DATASET_FOLDER = path
-        print(self.path)
+    def __init__(self, mat_data_dir, **kwargs):
+        """
+        Args:
+            mat_data_dir (str): Name of the directory that contains the .mat files.
+                                Needs to be located in the same directory as the script.
+        """
+        self.mat_data = mat_data_dir
         super().__init__(**kwargs)
-    def download(self):
-        pass
 
+    @property
     def path(self):
-        return os.path.join('C:Aleksi', self.__class__.__name__)
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)),'graph_data')
 
+    def download(self):
+        """Generates the a graph dataset based on given .mat files.
+        """
+        os.mkdir(self.path)
+        mat_data_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), self.mat_data)
+        graph_number = 0
+        
+        for f in os.listdir(mat_data_dir):
+            path = os.path.join(mat_data_dir,f)
+            graph_factory = mat_graph_factory(path)
+            graphs = graph_factory.generate_graphs()
+            
+            for g in graphs:
+                file_location = os.path.join(self.path, f'graph_{graph_number}')
+                with open(file_location, 'wb') as out:
+                    pickle.dump(g, out, pickle.HIGHEST_PROTOCOL)
+                graph_number += 1 
+            
+    def read(self):
+        """ Reads the files in the data set and returns a list of graphs.
+            NOTE: This implementation uses pickle. Use the method only if you have generated the
+                  dataset yourself or trust the person who did.
+        Returns:
+            list: List of spektral.data.Graph objects
+        """
+        graphs = []
+
+        for f in os.listdir(self.path):
+            file_location = os.path.join(self.path, f)
+            with open(file_location, 'rb') as input:
+                g = pickle.load(input)
+                graphs.append(g)
+        return graphs
 
 class mat_graph(spektral.data.Graph):
     def __init__(self, node_coords,
@@ -147,4 +182,4 @@ class mat_graph_factory():
         return sparse_adjacency, sparse_distances
 
 if __name__ == "__main__":
-    a= EIT_dataset()
+    EIT_dataset('mat_data')
