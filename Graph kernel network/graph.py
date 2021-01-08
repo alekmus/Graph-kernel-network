@@ -1,4 +1,3 @@
-from scipy.sparse import construct
 import spektral
 import utilities
 import data_loading
@@ -21,7 +20,7 @@ class mat_graph(spektral.data.Graph):
         # It could however be added by simply as a node feature.
         node_features = self.construct_node_features(node_coords, electrode_coords, stimulation_pattern, conductivity)
         target_measurements = self.construct_targets(node_coords, measurement_pattern, measurement)
-        
+        print(target_measurements)
         super().__init__(x = node_features, a = adjacency_matrix, e = edge_features, y = target_measurements)
 
 
@@ -30,12 +29,12 @@ class mat_graph(spektral.data.Graph):
            Feature vectors contain the following: [x: float, y: float, conductivity: float, in: [0,1], out: [0,1]]
            Conductivity at electrode nodes is set to 1.
         Args:
-            node_coords ([type]): [description]
-            electrode_coords ([type]): [description]
-            stimulation_pattern ([type]): [description]
+            node_coords (np.ndarray): Coordinates for ccentroids of triangle elements.
+            electrode_coords ([np.ndarray): Coordinates for the electrode midpoints.
+            stimulation_pattern (np.array): Stimulation pattern.
 
         Returns:
-            [type]: [description]
+            np.ndarray: Feature vector for the graph nodes.
         """
         feats = node_coords
         feats = np.concatenate([feats, conductivity.reshape(-1,1)],axis=1)
@@ -50,22 +49,20 @@ class mat_graph(spektral.data.Graph):
 
 
     def construct_targets(self, node_coords, measurement_pattern, measurement):
-        """[summary]
+        """Constructs target vector for the nodes. Zero elsewhere except measurement nodes.
 
         Args:
-            node_coords ([type]): [description]
-            measurement_pattern ([type]): [description]
-            measurement ([type]): [description]
+            node_coords (np.ndarray): Coordinates for the nodes. Only used to get their number. Possible site for optimization.
+            measurement_pattern (np.array): Single measurement pattern
+            measurement (float): The voltage measured at the pertinent nodes.
 
         Returns:
-            [type]: [description]
+            np.array: Targets for each node.
         """
-        target = np.zeros((node_coords.shape[0],3))
-        electrode_targets = np.zeros((measurement_pattern.shape[0],3))
+        target = np.zeros((node_coords.shape[0]))
+        electrode_targets = np.zeros((measurement_pattern.shape[0]))
         
-        electrode_targets[:,1][measurement_pattern>0] = 1
-        electrode_targets[:,2][measurement_pattern<0] = 1
-        electrode_targets[:,0][(measurement_pattern<0) | (measurement_pattern>0)] = measurement
+        electrode_targets[(measurement_pattern<0) | (measurement_pattern>0)] = measurement
         return np.concatenate([target, electrode_targets], axis=0)
 
 
@@ -99,6 +96,14 @@ class mat_graph_factory():
                   self.meas[0], 
                   self.conductivity)
     
+    def generate_graphs():
+        """Generates all samples from a single .mat file by iterating over 
+           all the measurement and stimulation patterns given by it.
+        Returns:
+        #TODO some datatype, read spektral documentation to avoid suboptimal choice
+            : 
+        """
+        pass
 
     def build_connections(self, nodes, r=0.1, self_loops_allowed=False) -> Tuple[scipy.sparse.csr_matrix, scipy.sparse.csr_matrix]:
         """Generates adjacency and edge feature matrices for nodes in a mesh
