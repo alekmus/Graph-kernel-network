@@ -1,4 +1,5 @@
 import spektral
+from tensorflow.python.keras.backend import zeros
 import utilities
 import data_loading
 from typing import Tuple
@@ -19,6 +20,10 @@ class EIT_dataset(spektral.data.Dataset):
 
     @property
     def path(self):
+        """Defines a property that contains a path to the graph data folder
+        Returns:
+            str: Path to the graph data folder
+        """
         return os.path.join(os.path.dirname(os.path.realpath(__file__)),'graph_data')
 
     def download(self):
@@ -56,6 +61,8 @@ class EIT_dataset(spektral.data.Dataset):
         return graphs
 
 class mat_graph(spektral.data.Graph):
+    """Object that converts EIDORS forward model data from a .mat file to a spektral graph.
+    """
     def __init__(self, node_coords,
                  adjacency_matrix, 
                  edge_features, 
@@ -69,6 +76,7 @@ class mat_graph(spektral.data.Graph):
         # It could however be added by simply as a node feature.
         node_features = self.construct_node_features(node_coords, electrode_coords, stimulation_pattern, conductivity)
         target_measurements = self.construct_targets(node_coords, measurement_pattern, measurement)
+        
         super().__init__(x = node_features, a = adjacency_matrix, e = edge_features, y = target_measurements)
 
 
@@ -111,7 +119,9 @@ class mat_graph(spektral.data.Graph):
         electrode_targets = np.zeros((measurement_pattern.shape))
         
         electrode_targets[(measurement_pattern<0) | (measurement_pattern>0)] = measurement
-        return np.concatenate([target, electrode_targets], axis=0)
+        target = np.concatenate([target, electrode_targets], axis=0)
+        target = target.reshape(-1,1)
+        return target
 
 
 class mat_graph_factory():
@@ -159,7 +169,7 @@ class mat_graph_factory():
 
         return graphs
 
-    def build_connections(self, nodes, r=0.1, self_loops_allowed=False) -> Tuple[scipy.sparse.csr_matrix, scipy.sparse.csr_matrix]:
+    def build_connections(self, nodes, r=0.1, self_loops_allowed=True) -> Tuple[scipy.sparse.csr_matrix, scipy.sparse.csr_matrix]:
         """Generates adjacency and edge feature matrices for nodes in a mesh
             based Euclidean neighbourhoods defined by a ball B(x,r) for each
             node x. 
@@ -173,13 +183,12 @@ class mat_graph_factory():
             tuple: An adjacency matrix and distances between nodes
         """
         distance_mask, distances = utilities.generate_ball_neighbourhoods(nodes, r)
-
+        
         if(not self_loops_allowed):
             np.fill_diagonal(distance_mask, False)
 
-        sparse_adjacency = scipy.sparse.csr_matrix(distance_mask)
-        sparse_distances = scipy.sparse.csr_matrix(distances[distance_mask])
-        return sparse_adjacency, sparse_distances
+        sparse_adjacency = scipy.sparse.csr_matrix(distance_mask).astype(int)
+        return sparse_adjacency, distances[distance_mask].reshape(-1,1)
 
 if __name__ == "__main__":
     EIT_dataset('mat_data')

@@ -1,9 +1,11 @@
 from typing import Tuple
 import sklearn.metrics as skm
-import scipy.sparse
+import spektral
 import numpy as np
 import scipy.spatial as sspa
 from sklearn.metrics.pairwise import distance_metrics
+import tensorflow as tf
+
 
 def generate_ball_neighbourhoods(vectors, r) -> Tuple[np.ndarray, np.ndarray]:
     """Connects input vectors into neighbourhoods based on Euclidean distance.
@@ -146,7 +148,42 @@ def mesh_from_nodes(nodes):
     x, y = nodes
     return sspa.Delaunay(np.concatenate([x.reshape(-1,1), y.reshape(-1,1)], axis=1), qhull_options='QJ')
 
+# Need to clean up this loader. There seems to be a problem with 
+# the library so workaround has to be made but I am scared to touch
+# after this delayed the whole project for two weeks at least.
+class WDJLoader(spektral.data.loaders.DisjointLoader):
+    """Working disjoint loader
+    """
+    def tf_signature(self):
+        """
+        Adjacency matrix has shape [n_nodes, n_nodes]
+        Node features have shape [n_nodes, n_node_features]
+        Edge features have shape [n_edges, n_edge_features]
+        Targets have shape [..., n_labels]
+        """
+        signature = self.dataset.signature
+        signature["a"]["spec"] = tf.SparseTensorSpec
 
+        signature["i"] = dict()
+        signature["i"]["spec"] = tf.TensorSpec
+        signature["i"]["shape"] = (None,)
+        signature["i"]["dtype"] = tf.as_dtype(tf.int64)
+        
+        output = []
+        keys = ["x", "a", "e", "i"]
+        for k in keys:
+            if k in signature:
+                shape = signature[k]["shape"]
+                dtype = signature[k]["dtype"]
+                spec = signature[k]["spec"]
+                output.append(spec(shape, dtype))
+        output = tuple(output)
+
+        shape = signature["y"]["shape"]
+        dtype = signature["y"]["dtype"]
+        spec = signature["y"]["spec"]
+
+        return (output, tf.TensorSpec((None,1),tf.float64))
 
 if __name__ == '__main__':
     nodes = generate_2D_radial_coordinates_equidistant(5)
