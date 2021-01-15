@@ -1,4 +1,5 @@
 import spektral
+from tensorflow.python.framework.ops import Graph
 from tensorflow.python.keras.backend import zeros
 import utilities
 import data_loading
@@ -9,13 +10,14 @@ import os
 import pickle
 
 class EIT_dataset(spektral.data.Dataset):
-    def __init__(self, mat_data_dir, **kwargs):
+    def __init__(self, mat_data_dir, graph_data_dir, **kwargs):
         """
         Args:
             mat_data_dir (str): Name of the directory that contains the .mat files.
                                 Needs to be located in the same directory as the script.
         """
         self.mat_data = mat_data_dir
+        self.graph_data_dir = graph_data_dir
         super().__init__(**kwargs)
 
     @property
@@ -24,7 +26,7 @@ class EIT_dataset(spektral.data.Dataset):
         Returns:
             str: Path to the graph data folder
         """
-        return os.path.join(os.path.dirname(os.path.realpath(__file__)),'graph_data')
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), self.graph_data_dir)
 
     def download(self):
         """Generates the a graph dataset based on given .mat files.
@@ -32,7 +34,7 @@ class EIT_dataset(spektral.data.Dataset):
         os.mkdir(self.path)
         mat_data_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), self.mat_data)
         graph_number = 0
-        
+
         for f in os.listdir(mat_data_dir):
             path = os.path.join(mat_data_dir,f)
             graph_factory = mat_graph_factory(path)
@@ -40,14 +42,11 @@ class EIT_dataset(spektral.data.Dataset):
             
             for g in graphs:
                 file_location = os.path.join(self.path, f'graph_{graph_number}')
-                with open(file_location, 'wb') as out:
-                    pickle.dump(g, out, pickle.HIGHEST_PROTOCOL)
+                np.savez(file_location, x=g.x, a=g.a, e=g.e, y=g.y)
                 graph_number += 1 
             
     def read(self):
         """ Reads the files in the data set and returns a list of graphs.
-            NOTE: This implementation uses pickle. Use the method only if you have generated the
-                  dataset yourself or trust the person who did.
         Returns:
             list: List of spektral.data.Graph objects
         """
@@ -55,9 +54,10 @@ class EIT_dataset(spektral.data.Dataset):
 
         for f in os.listdir(self.path):
             file_location = os.path.join(self.path, f)
-            with open(file_location, 'rb') as input:
-                g = pickle.load(input)
-                graphs.append(g)
+            g = np.load(file_location)
+            graph = spektral.data.Graph(x=g['x'], a=scipy.sparse.csr_matrix(g['a']), e=g['e'], y=g['y'])
+            graphs.append(graph)
+            
         return graphs
 
 class mat_graph(spektral.data.Graph):
@@ -187,8 +187,7 @@ class mat_graph_factory():
         if(not self_loops_allowed):
             np.fill_diagonal(distance_mask, False)
 
-        sparse_adjacency = scipy.sparse.csr_matrix(distance_mask).astype(int)
-        return sparse_adjacency, distances[distance_mask].reshape(-1,1)
+        return distance_mask.astype(int), distances[distance_mask].reshape(-1,1)
 
 if __name__ == "__main__":
     EIT_dataset('mat_data')

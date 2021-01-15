@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as tfk
 import spektral
+import tensorflow.keras.backend as K
 
 class GKNet(tfk.models.Model):
     def __init__(self, 
@@ -25,9 +26,9 @@ class GKNet(tfk.models.Model):
         self.conv_layers = []
 
         for _ in range(depth-1):
-            self.conv_layers.append(spektral.layers.ECCConv(channels, kernel_layers, activation=tf.nn.relu))
+            self.conv_layers.append(spektral.layers.ECCConv(channels, kernel_layers, activation=tf.nn.leaky_relu))
 
-        self.output_layer = spektral.layers.ECCConv(n_labels, kernel_layers)
+        self.output_layer = spektral.layers.ECCConv(n_labels, kernel_layers, activation=tf.nn.relu)
         self.conv_layers.append(self.output_layer)
     
         """
@@ -52,4 +53,29 @@ class GKNet(tfk.models.Model):
         for conv in self.conv_layers:
             X = conv([X,A,E])
         return X
-       
+
+def mask_zero_preds(y_true, y_pred):
+    zero_mask = K.equal(y_true, 0)
+    zero_mask = K.cast(zero_mask, dtype=K.floatx())
+    zero_mask = 1 - zero_mask
+    
+    y_true = y_true * zero_mask
+    y_pred = y_pred * zero_mask
+
+    return y_true, y_pred
+
+def electrode_loss_fn(y_true, y_pred):
+    # Ignores losses everywhere but at the measuring electrode
+    masked_y_true, masked_y_pred = mask_zero_preds(y_true, y_pred)
+    return tfk.losses.mean_squared_error(masked_y_true, masked_y_pred)
+
+def electrode_MAPE(y_true, y_pred):
+    # Ignores values everywhere but at the measuring electrodes
+    masked_y_true, masked_y_pred = mask_zero_preds(y_true, y_pred)
+    return tfk.losses.mean_absolute_percentage_error(masked_y_true, masked_y_pred)
+
+def generate_EITNet():
+    model = GKNet(32,5,[16,16,16])
+    optimizer = tfk.optimizers.SGD(learning_rate=0.001, momentum = 0.9, nesterov=True)
+    model.compile(optimizer, loss=electrode_loss_fn, metrics=[electrode_MAPE])
+    return model
