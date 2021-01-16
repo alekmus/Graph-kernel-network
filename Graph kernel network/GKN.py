@@ -76,6 +76,6 @@ def electrode_MAPE(y_true, y_pred):
 
 def generate_EITNet():
     model = GKNet(64,6,[32,32,16])
-    optimizer = tfk.optimizers.SGD(learning_rate=0.001, momentum = 0.9, nesterov=True)
+    optimizer = tfk.optimizers.Adam()
     model.compile(optimizer, loss=electrode_loss_fn, metrics=[electrode_MAPE])
     return model

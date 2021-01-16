@@ -3,15 +3,13 @@ from pickle import load
 from tensorflow.python.keras.backend import dtype
 import gkn
 from graph import EIT_dataset
-import tensorflow as tf
-import tensorflow.keras as tfk
 import utilities, datetime
 
 
 
 if __name__== '__main__':
-    BATCH_SIZE = 1
-    EPOCHS = 20
+    BATCH_SIZE = 32
+    EPOCHS = 1
     
     # Load data and convert .mat files if necessary
     data = EIT_dataset('mat_data','graph_data')
@@ -26,4 +24,4 @@ if __name__== '__main__':
               epochs=EPOCHS,
               steps_per_epoch=loader.steps_per_epoch)
 
-    model.save_weights(f'weights/EITNet_weights_{datetime.datetime.now().strftime("%d%m%Y_%H%M%S")}')
+    model.save_weights(f'weights/EITNet_weights_{datetime.datetime.now().strftime("%d%m%Y")}')
