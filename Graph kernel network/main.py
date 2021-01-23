@@ -1,6 +1,6 @@
 import gkn
 from graph import EIT_dataset
-import datetime, utilities
+import datetime
 import tensorflow.keras as tfk
 import spektral
 
@@ -14,7 +14,7 @@ if __name__== '__main__':
     loader = spektral.data.loaders.DisjointLoader(data, batch_size = BATCH_SIZE)
 
     model = gkn.generate_EITNet()
-
+    #model.load_weights('weights\checkp.index')
     model.fit(loader.load(), 
               epochs=EPOCHS,
               steps_per_epoch=loader.steps_per_epoch,
