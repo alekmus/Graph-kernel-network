@@ -8,7 +8,7 @@ import spektral, utilities
 
 def generate_EITNet():
     model = gkn.GKNet(32, 3, [16, 32])
-    optimizer = tfk.optimizers.SGD(learning_rate=0.0001, momentum=0.9)
+    optimizer = tfk.optimizers.Adam()
     model.compile(optimizer, loss='mse', metrics=['MAPE'])
     return model
 
