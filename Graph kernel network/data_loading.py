@@ -60,16 +60,17 @@ def load_data_from_mat(file_location):
                           "stim_pattern": stimulation patterns,
                           "meas_pattern": measurement patterns, 
                           "measurements": measurements at electrodes for each measurement pattern, 
-                          "conductivity": conductivity distribution within the object}
+                          "conductivity": conductivity distribution within the object,
+                          "volts": voltage distribution on nodes}
     """
     mat_file = sio.loadmat(file_location, struct_as_record=False)
     stim_pattern, meas_pattern = read_patterns(mat_file)
     nodes, tris, electrode_nodes = read_geometry(mat_file)
-
     # Read measurements given by electrodes.
     # Measurements are given in a single array whereas the indices
     # of the measurement patterns are split based on possible configurations 
     meas = read_electrode_measurements(mat_file)
+    volts = read_voltage_distribution(mat_file)
     conductivity = load_conductivity(mat_file)
     return {"nodes":nodes,
             "tris": tris,
@@ -77,8 +78,12 @@ def load_data_from_mat(file_location):
             "stim_pattern": stim_pattern,
             "meas_pattern": meas_pattern,
             "measurements": meas,
-            "conductivity": conductivity}
+            "conductivity": conductivity,
+            "volt_dist" : volts}
 
+
+def read_voltage_distribution(mat_file):
+    return mat_file['data'][0,0].volt.astype(float)
 
 def load_conductivity(mat_file):
     return mat_file['img'][0,0].elem_data.astype(float).flatten()
@@ -118,7 +123,8 @@ def read_patterns(mat_file):
 
 
 if __name__ == '__main__':
-    d  = load_data_from_mat(r'data\data.mat')
+    d  = load_data_from_mat(r'mat_data\data1.mat')
+    exit()
     nodes =d['nodes']
     tris = d['tris'] 
     electrode_nodes = d['electrode_nodes']
@@ -166,3 +172,4 @@ if __name__ == '__main__':
                 plt.plot([n[i,0],n[j,0]],[n[i,1],n[j,1]], c='k')
     """
     plt.show()
+

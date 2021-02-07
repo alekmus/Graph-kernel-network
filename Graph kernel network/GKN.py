@@ -8,7 +8,6 @@ class GKNet(tfk.models.Model):
                  channels, 
                  depth, 
                  kernel_layers, 
-                 n_labels = 1,
                  name = 'Graph_kernel_network',
                  **kwargs):
         """
@@ -24,23 +23,21 @@ class GKNet(tfk.models.Model):
         super().__init__(name=name, **kwargs)
         self.depth = depth
         self.conv_layers = []
-
+        self.norm_layers = []
         for _ in range(depth-1):
             self.conv_layers.append(spektral.layers.ECCConv(channels, kernel_layers, activation=tf.nn.leaky_relu))
+            self.norm_layers.append(tfk.layers.Dropout(0.5))
 
-        self.output_layer = tfk.layers.Dense(n_labels,activation='linear')
+        self.output_layer = spektral.layers.ECCConv(3,kernel_layers, activation='linear')
     
     def call(self, input):
         X = input[0]
         A = input[1]
         E = input[2]
 
-        for conv in self.conv_layers:
+        
+        for conv, norm in zip(self.conv_layers, self.norm_layers):
             X = conv([X,A,E])
-        return self.output_layer(X)
+            X = norm(X)
 
-def generate_EITNet():
-    model = GKNet(64,6,[32,32,16])
-    optimizer = tfk.optimizers.Adam(learning_rate=0.001)
-    model.compile(optimizer, loss='mse', metrics=['MAPE'])
-    return model
+        return self.output_layer([X,A,E])

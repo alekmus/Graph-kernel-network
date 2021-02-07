@@ -1,3 +1,4 @@
+from numpy.core.numeric import zeros_like
 import spektral
 import utilities
 import data_loading
@@ -47,15 +48,18 @@ class mat_graph(spektral.data.Graph):
                  edge_features, 
                  electrode_coords,
                  stimulation_pattern, 
-                 measurement_pattern, 
-                 measurement, 
-                 conductivity):
+                 measurement_pattern,  
+                 conductivity,
+                 volts,
+                 tris):
 
         # Stimulation current is constant across samples so it is not implemented for now.
         # It could however be added by simply as a node feature.
+        
         node_features = self.construct_node_features(node_coords, electrode_coords, stimulation_pattern, conductivity, measurement_pattern)
-
-        super().__init__(x = node_features, a = adjacency_matrix, e = edge_features, y = measurement)
+        target = volts[tris]
+        target = np.concatenate([target, np.zeros((electrode_coords.shape[0],3))])
+        super().__init__(x = node_features, a = adjacency_matrix, e = edge_features, y = target)
 
 
     def construct_node_features(self, node_coords, electrode_coords, stimulation_pattern, conductivity, measurement_pattern):
@@ -71,6 +75,7 @@ class mat_graph(spektral.data.Graph):
             np.ndarray: Feature vector for the graph nodes.
         """
         feats = node_coords
+        
         feats = np.concatenate([feats, conductivity.reshape(-1,1)],axis=1)
         feats = np.concatenate([feats, np.zeros((feats.shape[0],4))],axis=1)
         
@@ -82,10 +87,11 @@ class mat_graph(spektral.data.Graph):
         el_vectors = np.concatenate([el_vectors, (measurement_pattern>0).reshape(-1,1)], axis=1)
         el_vectors = np.concatenate([el_vectors, (measurement_pattern<0).reshape(-1,1)], axis=1)
         
+
         return np.concatenate((feats, el_vectors),axis=0)
 
 
-    def construct_targets(self, node_coords, measurement_pattern, measurement):
+    def construct_targets(self, node_coords, volts):
         """Constructs target vector for the nodes. Zero elsewhere except measurement nodes.
 
         Args:
@@ -122,10 +128,13 @@ class mat_graph_factory():
         self.meas = data['measurements'] 
         self.conductivity = data['conductivity']
         self.electrode_indices = data['electrode_nodes']
+        self.tris = data['tris']
         self.nodes = utilities.centroids_from_tris(coords, data['tris'])
+        
+        self.volts = data['volt_dist']
         self.electrode_coords = data_loading.compute_electrode_midpoints(coords, self.electrode_indices)
         self.adj, self.edge_feats = self.build_connections(np.concatenate([self.nodes, self.electrode_coords],axis=0))
-
+        
         
     
     def generate_graphs(self):
@@ -135,18 +144,18 @@ class mat_graph_factory():
             list: Graphs  
         """
         graphs = []
-        meas_idx = 0
-        for i, stim_p in enumerate(self.stim_patterns):
-            for meas_p in self.meas_patterns[i]:
+        for stim_p,meas_ps, volt in zip(self.stim_patterns,self.meas_patterns, self.volts.T):
+            for meas_p in meas_ps:
                 graphs.append(mat_graph(self.nodes, 
                                         self.adj, 
                                         self.edge_feats, 
                                         self.electrode_coords, 
                                         stim_p, 
-                                        meas_p,
-                                        self.meas[meas_idx], 
-                                        self.conductivity))
-                meas_idx += 1
+                                        meas_p, 
+                                        self.conductivity,
+                                        volt,
+                                        self.tris))
+                    
 
         return graphs
 
@@ -171,4 +180,4 @@ class mat_graph_factory():
         return scipy.sparse.csr_matrix(distance_mask.astype(int)), distances[distance_mask].reshape(-1,1)
 
 if __name__ == "__main__":
-    print(EIT_dataset('test_mat_data'))
+    print(EIT_dataset('mat_data'))
