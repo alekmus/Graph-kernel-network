@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
-import gkn
+import GKN as gkn
 from graph import EIT_dataset
 import datetime
 import tensorflow.keras as tfk
 import spektral, utilities
 
 def generate_EITNet():
-    model = gkn.GKNet(32, 3, [16, 32])
-    optimizer = tfk.optimizers.Adam()
+    model = gkn.GKNet(64, 4, [128, 32,32, 128])
+    optimizer = tfk.optimizers.Adam(learning_rate=0.01)
     model.compile(optimizer, loss='mse', metrics=['MAPE'])
     return model
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 100
+    EPOCHS = 800
     
     # Load data and convert .mat files if necessary
     val_data = EIT_dataset('val_mat_data')
@@ -25,7 +25,7 @@ if __name__== '__main__':
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
     model = generate_EITNet()
     
-    #model.load_weights('/content/drive/MyDrive/EITNet/weights/eit_checkp')
+    #model.load_weights("weights/EITNet_weights_09022021.index")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
@@ -48,7 +48,3 @@ if __name__== '__main__':
     plt.savefig('convergence.png')
 
     model.evaluate(val_loader.load(), steps=val_loader.steps_per_epoch)
-
-    test_data = EIT_dataset('test_mat_data')
-    test_loader = utilities.WDJLoader(test_data, batch_size = BATCH_SIZE, node_level=True)
-    model.evaluate(test_loader.load(), steps=test_loader.steps_per_epoch)
