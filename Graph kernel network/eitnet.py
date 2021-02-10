@@ -7,14 +7,14 @@ import tensorflow.keras as tfk
 import spektral, utilities
 
 def generate_EITNet():
-    model = gkn.GKNet(64, 4, [128, 32,32, 128])
+    model = gkn.GKNet(128, 4, [64, 32,16,32, 64])
     optimizer = tfk.optimizers.Adam(learning_rate=0.01)
     model.compile(optimizer, loss='mse', metrics=['MAPE'])
     return model
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 800
+    EPOCHS = 100
     
     # Load data and convert .mat files if necessary
     val_data = EIT_dataset('val_mat_data')
