@@ -57,8 +57,10 @@ class mat_graph(spektral.data.Graph):
         # It could however be added by simply as a node feature.
         
         node_features = self.construct_node_features(node_coords, electrode_coords, stimulation_pattern, conductivity, measurement_pattern)
-        target = volts[tris]
-        target = np.concatenate([target, np.zeros((electrode_coords.shape[0],3))])
+        
+        target = volts
+        #target = np.concatenate([target, np.zeros((electrode_coords.shape[0],3))])
+
         super().__init__(x = node_features, a = adjacency_matrix, e = edge_features, y = target)
 
 
