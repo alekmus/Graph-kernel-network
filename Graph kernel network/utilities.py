@@ -183,7 +183,7 @@ class WDJLoader(spektral.data.loaders.DisjointLoader):
         dtype = signature["y"]["dtype"]
         spec = signature["y"]["spec"]
 
-        return (output, tf.TensorSpec((None,3), tf.float64))
+        return (output, tf.TensorSpec((1,None), tf.float64))
 
 if __name__ == '__main__':
     nodes = generate_2D_radial_coordinates_equidistant(5)
