@@ -28,7 +28,7 @@ class GKNet(tfk.models.Model):
             self.conv_layers.append(spektral.layers.ECCConv(channels, kernel_layers, activation=tf.nn.leaky_relu))
             self.norm_layers.append(tfk.layers.BatchNormalization())
 
-        self.output_layer = spektral.layers.ECCConv(3,kernel_layers, activation='linear')
+        self.output_layer = spektral.layers.ECCConv(1,kernel_layers, activation='linear')
     
     def call(self, input):
         X = input[0]
