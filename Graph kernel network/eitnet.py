@@ -7,14 +7,14 @@ import tensorflow.keras as tfk
 import spektral, utilities
 
 def generate_EITNet():
-    model = gkn.GKNet(128, 4, [64, 32,16,32, 64])
-    optimizer = tfk.optimizers.Adam(learning_rate=0.01)
+    model = gkn.GKNet(128, 5, [64, 128, 64])
+    optimizer = tfk.optimizers.Adam(learning_rate=0.01, amsgrad=True)
     model.compile(optimizer, loss='mse', metrics=['MAPE'])
     return model
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 100
+    EPOCHS = 10
     
     # Load data and convert .mat files if necessary
     val_data = EIT_dataset('val_mat_data')
@@ -25,7 +25,7 @@ if __name__== '__main__':
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
     model = generate_EITNet()
     
-    #model.load_weights("weights/EITNet_weights_09022021.index")                
+    model.load_weights("weights/eit_checkp")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
@@ -34,7 +34,7 @@ if __name__== '__main__':
               steps_per_epoch=loader.steps_per_epoch,
               callbacks=[tfk.callbacks.ModelCheckpoint("weights/eit_checkp",monitor='val_loss',save_best_only=True)])
     print(model.summary())
-    model.save_weights(f'weights/EITNet_weights_{datetime.datetime.now().strftime("%d%m%Y")}')
+    model.save_weights(f'weights/EITNet_weights_{datetime.datetime.now().strftime("%d%m%y")}', overwrite=True)
 
     import matplotlib.pyplot as plt
 
