@@ -22,16 +22,21 @@ def masked_mse(y_true, y_pred):
     masked_y_true, masked_y_pred = mask_zero_preds(y_true, y_pred)
     return tfk.losses.mean_squared_error(masked_y_true, masked_y_pred)
 
+def masked_MAPE(y_true, y_pred):
+    # Ignores values everywhere but at the measuring electrodes
+    masked_y_true, masked_y_pred = mask_zero_preds(y_true, y_pred)
+    return tfk.losses.mean_absolute_percentage_error(masked_y_true, masked_y_pred)
+
 
 def generate_EITNet():
-    model = gkn.GKNet(128, 5, [64, 128, 64])
-    optimizer = tfk.optimizers.Adam(learning_rate=0.01, amsgrad=True)
-    model.compile(optimizer, loss=masked_mse, metrics=['MAPE'])
+    model = gkn.GKNet(128, 4, [16, 32, 64, 64])
+    optimizer = tfk.optimizers.Adam(learning_rate=0.0001, amsgrad=True)
+    model.compile(optimizer, loss=masked_mse, metrics=[masked_MAPE])
     return model
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 10
+    EPOCHS = 20
     
     # Load data and convert .mat files if necessary
     val_data = EIT_dataset('val_mat_data')
@@ -42,7 +47,7 @@ if __name__== '__main__':
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
     model = generate_EITNet()
     
-    #model.load_weights("weights/eit_checkp")                
+    model.load_weights("weights/eit_checkp")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
