@@ -39,5 +39,5 @@ class GKNet(tfk.models.Model):
         for conv, norm in zip(self.conv_layers, self.norm_layers):
             X = conv([X,A,E])
             X = norm(X)
-
-        return self.output_layer([X,A,E])
+        out = self.output_layer([X,A,E])
+        return out

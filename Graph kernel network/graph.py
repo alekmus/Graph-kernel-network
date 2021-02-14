@@ -43,28 +43,31 @@ class EIT_dataset(spektral.data.Dataset):
 class mat_graph(spektral.data.Graph):
     """Object that converts EIDORS forward model data from a .mat file to a spektral graph.
     """
-    def __init__(self, node_coords,
-                 adjacency_matrix, 
-                 edge_features, 
-                 electrode_coords,
-                 stimulation_pattern, 
-                 measurement_pattern,  
-                 conductivity,
-                 volts,
-                 tris):
+    def __init__(
+        self, 
+        node_coords,
+        centroids,
+        adjacency_matrix, 
+        edge_features, 
+        electrode_indices,
+        stimulation_pattern, 
+        measurement_pattern,  
+        conductivity,
+        volts,
+        tris
+    ):
 
         # Stimulation current is constant across samples so it is not implemented for now.
         # It could however be added by simply as a node feature.
         
-        node_features = self.construct_node_features(node_coords, electrode_coords, stimulation_pattern, conductivity, measurement_pattern)
-        
+        coord_features, centroid_features = self.construct_node_features(node_coords, centroids, electrode_indices, stimulation_pattern, conductivity, measurement_pattern)
+        node_features = np.concatenate([coord_features, centroid_features], axis=0)
         target = volts
-        #target = np.concatenate([target, np.zeros((electrode_coords.shape[0],3))])
-
+        target = np.concatenate([target, np.zeros(centroid_features.shape[0])],axis=0)
         super().__init__(x = node_features, a = adjacency_matrix, e = edge_features, y = target)
 
 
-    def construct_node_features(self, node_coords, electrode_coords, stimulation_pattern, conductivity, measurement_pattern):
+    def construct_node_features(self, node_coords, centroids, electrode_indices, stimulation_pattern, conductivity, measurement_pattern):
         """Constructs node feature vectors for each node in the graph.
            Feature vectors contain the following: [x: float, y: float, conductivity: float, in: [0,1], out: [0,1]]
            Conductivity at electrode nodes is set to 1.
@@ -76,41 +79,37 @@ class mat_graph(spektral.data.Graph):
         Returns:
             np.ndarray: Feature vector for the graph nodes.
         """
-        feats = node_coords
-        
-        feats = np.concatenate([feats, conductivity.reshape(-1,1)],axis=1)
-        feats = np.concatenate([feats, np.zeros((feats.shape[0],4))],axis=1)
-        
-        el_vectors = electrode_coords
-        el_vectors = np.concatenate([el_vectors, np.ones((el_vectors.shape[0],1))], axis=1)
-        el_vectors = np.concatenate([el_vectors, (stimulation_pattern>0).reshape(-1,1)], axis=1)
-        el_vectors = np.concatenate([el_vectors, (stimulation_pattern<0).reshape(-1,1)], axis=1)
-        
-        el_vectors = np.concatenate([el_vectors, (measurement_pattern>0).reshape(-1,1)], axis=1)
-        el_vectors = np.concatenate([el_vectors, (measurement_pattern<0).reshape(-1,1)], axis=1)
-        
+        coord_feats = np.concatenate([
+            node_coords, 
+            np.ones(node_coords.shape[0]).reshape(-1,1), 
+            np.zeros(node_coords.shape[0]).reshape(-1,1),
+        ], axis=1)
 
-        return np.concatenate((feats, el_vectors),axis=0)
+        el_mask = np.zeros(node_coords.shape[0])
+        stim_mask = np.repeat(stimulation_pattern, 2)
 
-
-    def construct_targets(self, node_coords, volts):
-        """Constructs target vector for the nodes. Zero elsewhere except measurement nodes.
-
-        Args:
-            node_coords (np.ndarray): Coordinates for the nodes. Only used to get their number. Possible site for optimization.
-            measurement_pattern (np.array): Single measurement pattern
-            measurement (float): The voltage measured at the pertinent nodes.
-
-        Returns:
-            np.array: Targets for each node.
-        """
-        target = np.zeros((node_coords.shape[0]))
-        electrode_targets = np.zeros((measurement_pattern.shape))
+        inj_cur = np.copy(el_mask)
+        out_cur = np.copy(el_mask)
+        inj_cur[electrode_indices[stim_mask>0]] = 1
         
-        electrode_targets[(measurement_pattern<0) | (measurement_pattern>0)] = measurement
-        target = np.concatenate([target, electrode_targets], axis=0)
-        target = target.reshape(-1,1)
-        return target
+        out_cur[electrode_indices[stim_mask<0]]=1
+        
+        coord_feats = np.concatenate([
+            coord_feats,
+            inj_cur.reshape(-1,1),
+            out_cur.reshape(-1,1)
+        ], axis=1)
+
+
+        centroid_feats = np.concatenate([
+            centroids, 
+            np.zeros(centroids.shape[0]).reshape(-1,1), 
+            conductivity.reshape(-1,1),
+            np.zeros(centroids.shape[0]).reshape(-1,1),
+            np.zeros(centroids.shape[0]).reshape(-1,1)
+        ], axis=1)
+        
+        return coord_feats, centroid_feats
 
 
 class mat_graph_factory():
@@ -124,18 +123,17 @@ class mat_graph_factory():
                             'img' contains and EIDORS image object with conductivity distribution information
         """
         data  = data_loading.load_data_from_mat(mat_file_location)
-        coords = data['nodes']
+        self.nodes = data['nodes']
         self.stim_patterns = data['stim_pattern']
         self.meas_patterns = data['meas_pattern'] 
         self.meas = data['measurements'] 
         self.conductivity = data['conductivity']
         self.electrode_indices = data['electrode_nodes']
         self.tris = data['tris']
-        self.nodes = utilities.centroids_from_tris(coords, data['tris'])
+        self.centroids = utilities.centroids_from_tris(self.nodes, data['tris'])
         
         self.volts = data['volt_dist']
-        self.electrode_coords = data_loading.compute_electrode_midpoints(coords, self.electrode_indices)
-        self.adj, self.edge_feats = self.build_connections(np.concatenate([self.nodes, self.electrode_coords],axis=0))
+        self.adj, self.edge_feats = self.build_connections(np.concatenate([self.nodes, self.centroids],axis=0))
         
         
     
@@ -149,9 +147,10 @@ class mat_graph_factory():
         for stim_p,meas_ps, volt in zip(self.stim_patterns,self.meas_patterns, self.volts.T):
             for meas_p in meas_ps:
                 graphs.append(mat_graph(self.nodes, 
+                                        self.centroids,
                                         self.adj, 
                                         self.edge_feats, 
-                                        self.electrode_coords, 
+                                        self.electrode_indices, 
                                         stim_p, 
                                         meas_p, 
                                         self.conductivity,

@@ -5,11 +5,28 @@ from graph import EIT_dataset
 import datetime
 import tensorflow.keras as tfk
 import spektral, utilities
+import tensorflow.keras.backend as K
+
+def mask_zero_preds(y_true, y_pred):
+    zero_mask = K.equal(y_true, 0)
+    zero_mask = K.cast(zero_mask, dtype=K.floatx())
+    zero_mask = 1 - zero_mask
+    
+    y_true = y_true * zero_mask
+    y_pred = y_pred * zero_mask
+
+    return y_true, y_pred
+
+def masked_mse(y_true, y_pred):
+    # Ignores losses everywhere but at the measuring electrode
+    masked_y_true, masked_y_pred = mask_zero_preds(y_true, y_pred)
+    return tfk.losses.mean_squared_error(masked_y_true, masked_y_pred)
+
 
 def generate_EITNet():
     model = gkn.GKNet(128, 5, [64, 128, 64])
     optimizer = tfk.optimizers.Adam(learning_rate=0.01, amsgrad=True)
-    model.compile(optimizer, loss='mse', metrics=['MAPE'])
+    model.compile(optimizer, loss=masked_mse, metrics=['MAPE'])
     return model
 
 if __name__== '__main__':
@@ -25,7 +42,7 @@ if __name__== '__main__':
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
     model = generate_EITNet()
     
-    model.load_weights("weights/eit_checkp")                
+    #model.load_weights("weights/eit_checkp")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
