@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from graph import EIT_dataset
 import utilities, random, data_loading
-
-if __name__ == '__main__':
+import networkx as nx
+import numpy as np
+def model_predictions():
     model = eitnet.generate_EITNet()
 
 
@@ -15,13 +16,48 @@ if __name__ == '__main__':
 
     data = data[ind]
 
-    loader = utilities.WDJLoader(data, batch_size = 1,node_level=True)
-    model.evaluate(loader.load(), steps=loader.steps_per_epoch)
+    loader = utilities.WDJLoader(data[:2], batch_size = 1,node_level=True)
+    # model.evaluate(loader.load(), steps=loader.steps_per_epoch)
     mat_data = data_loading.load_data_from_mat(r"C:\Users\Aleksi\Documents\hy-opinnot\Gradu\Gradu_code\Graph-kernel-network\Graph kernel network\fig_mats\e20opad.mat")
-    #triang = mpl.tri.Triangulation(mat_data['nodes'][:,0],mat_data['nodes'][:,1], mat_data['tris'])
+
+    x = mat_data['nodes'][:,0]
+    y = mat_data['nodes'][:,1]
+    triang = mpl.tri.Triangulation(x,y, mat_data['tris'])
     
-    print( mat_data['volt_dist'][:,0].shape)
     pred = model.predict(loader.load(), steps=loader.steps_per_epoch)
-    
-    plt.tripcolor(mat_data['nodes'][:,0],mat_data['nodes'][:,1], mat_data['tris'], pred[:-20].flatten())
+    print(pred.shape)
+    print(mat_data['volt_dist'][:,0].shape)
+    plt.tricontourf(triang, pred[2441:2441+841].flatten())
     plt.show()
+
+def draw_process(mat_file):
+    mat_data = data_loading.load_data_from_mat(mat_file)
+    x,y = mat_data['nodes'][:,0], mat_data['nodes'][:,1]
+    cond = mat_data['conductivity']
+    cent = utilities.centroids_from_tris(mat_data['nodes'], mat_data['tris'])
+    nodes = np.concatenate((mat_data['nodes'],cent),axis = 0)
+    connections = utilities.generate_ball_neighbourhoods(nodes, r=0.3)[0]
+    plt.subplot(131, aspect = 'equal')
+    plt.title('FEM mesh')
+    plt.axis('off')
+    plt.tripcolor(x, y, mat_data['tris'], facecolors=cond, edgecolors='lightsteelblue',cmap='Blues')
+    plt.scatter(x,y, s=1)
+
+    plt.subplot(132, aspect = 'equal')
+    plt.title('FEM mesh with element centroids')
+    plt.axis('off')
+    plt.tripcolor(x, y, mat_data['tris'], facecolors=cond, edgecolors='lightsteelblue',cmap='Blues')
+    x = np.concatenate((x,cent[:,0]),axis=0)
+    y = np.concatenate((y,cent[:,1]),axis=0)
+    plt.scatter(x,y, s=1)
+
+    plt.subplot(133, aspect = 'equal')
+    plt.title('Final graph structure with r=0.3')
+    G = nx.from_numpy_array(connections)
+    plt.tripcolor(x, y, mat_data['tris'], facecolors=cond, edgecolors='lightsteelblue',cmap='Blues')
+    nx.draw(G, pos=nodes, node_size=2, edgecolors='k')
+    
+
+    plt.show()
+if __name__ == '__main__':
+    draw_process(r"fig_mats\data1.mat")
