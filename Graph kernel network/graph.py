@@ -160,7 +160,7 @@ class mat_graph_factory():
 
         return graphs
 
-    def build_connections(self, nodes, r=0.1, self_loops_allowed=True):
+    def build_connections(self, nodes, r=0.15, self_loops_allowed=True):
         """Generates adjacency and edge feature matrices for nodes in a mesh
             based Euclidean neighbourhoods defined by a ball B(x,r) for each
             node x. 

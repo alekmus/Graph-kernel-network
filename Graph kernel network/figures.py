@@ -36,7 +36,7 @@ def draw_process(mat_file):
     cond = mat_data['conductivity']
     cent = utilities.centroids_from_tris(mat_data['nodes'], mat_data['tris'])
     nodes = np.concatenate((mat_data['nodes'],cent),axis = 0)
-    connections = utilities.generate_ball_neighbourhoods(nodes, r=0.3)[0]
+    connections = utilities.generate_ball_neighbourhoods(nodes, r=0.15)[0]
     plt.subplot(131, aspect = 'equal')
     plt.title('FEM mesh')
     plt.axis('off')
