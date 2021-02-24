@@ -6,6 +6,7 @@ import datetime
 import tensorflow.keras as tfk
 import spektral, utilities
 import tensorflow.keras.backend as K
+import numpy as np
 
 def mask_zero_preds(y_true, y_pred):
     zero_mask = K.equal(y_true, 0)
@@ -29,7 +30,7 @@ def masked_MAPE(y_true, y_pred):
 
 
 def generate_EITNet():
-    model = gkn.GKNet(128, 4, [16, 32, 64, 64])
+    model = gkn.GKNet(32, 10, [64, 32, 16])
     optimizer = tfk.optimizers.Adam(learning_rate=0.0001, amsgrad=True)
     model.compile(optimizer, loss=masked_mse, metrics=[masked_MAPE])
     return model
@@ -39,15 +40,18 @@ if __name__== '__main__':
     EPOCHS = 20
     
     # Load data and convert .mat files if necessary
-    val_data = EIT_dataset('val_mat_data')
     data = EIT_dataset('mat_data')
-    
+    # Inplace operation
+    np.random.shuffle(data)
+    split_i = int(data.n_graphs*0.25)
+    val_data = data[:split_i]
+    train_data = data[split_i:]
     # Define loader to create minibatches
-    loader = utilities.WDJLoader(data, batch_size = BATCH_SIZE,node_level=True)
+    loader = utilities.WDJLoader(train_data, batch_size = BATCH_SIZE,node_level=True)
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
     model = generate_EITNet()
     
-    model.load_weights("weights/eit_checkp")                
+    #model.load_weights("weights/eit_checkp")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
