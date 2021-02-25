@@ -36,7 +36,7 @@ def generate_EITNet():
     return model
 
 if __name__== '__main__':
-    BATCH_SIZE = 3
+    BATCH_SIZE = 1
     EPOCHS = 5
     
     # Load data and convert .mat files if necessary
