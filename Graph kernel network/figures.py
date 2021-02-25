@@ -5,11 +5,12 @@ from graph import EIT_dataset
 import utilities, random, data_loading
 import networkx as nx
 import numpy as np
+
 def model_predictions():
     model = eitnet.generate_EITNet()
 
 
-    model.load_weights(r'C:\Users\Aleksi\Documents\hy-opinnot\Gradu\Gradu_code\Graph-kernel-network\Graph kernel network\weights\eit_checkp')
+    model.load_weights('weights\\eit_checkp')
     data = EIT_dataset('fig_mats')
 
     ind = random.sample(range(len(data)), 10)
@@ -18,7 +19,7 @@ def model_predictions():
 
     loader = utilities.WDJLoader(data[:2], batch_size = 1,node_level=True)
     # model.evaluate(loader.load(), steps=loader.steps_per_epoch)
-    mat_data = data_loading.load_data_from_mat(r"C:\Users\Aleksi\Documents\hy-opinnot\Gradu\Gradu_code\Graph-kernel-network\Graph kernel network\fig_mats\e20opad.mat")
+    mat_data = data_loading.load_data_from_mat("mat_Data\\data1.mat")
 
     x = mat_data['nodes'][:,0]
     y = mat_data['nodes'][:,1]
@@ -27,7 +28,7 @@ def model_predictions():
     pred = model.predict(loader.load(), steps=loader.steps_per_epoch)
     print(pred.shape)
     print(mat_data['volt_dist'][:,0].shape)
-    plt.tricontourf(triang, pred[2441:2441+841].flatten())
+    plt.tricontourf(triang, pred[:x.shape[0]].flatten())
     plt.show()
 
 def draw_process(mat_file):
@@ -60,4 +61,5 @@ def draw_process(mat_file):
 
     plt.show()
 if __name__ == '__main__':
-    draw_process(r"fig_mats\data1.mat")
+    #draw_process(r"fig_mats\data1.mat")
+    model_predictions()
