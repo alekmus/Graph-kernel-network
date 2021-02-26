@@ -10,14 +10,12 @@ def model_predictions():
     model = eitnet.generate_EITNet()
 
 
-    model.load_weights('weights\\eit_checkp')
+    model.load_weights('weights\\EITNet_weights_260221')
     data = EIT_dataset('fig_mats')
 
-    ind = random.sample(range(len(data)), 10)
+    i = 5
 
-    data = data[ind]
-
-    loader = utilities.WDJLoader(data[:2], batch_size = 1,node_level=True)
+    loader = utilities.WDJLoader(data[i:i+1], batch_size = 1,node_level=True)
     # model.evaluate(loader.load(), steps=loader.steps_per_epoch)
     mat_data = data_loading.load_data_from_mat("mat_Data\\data1.mat")
 
@@ -26,9 +24,11 @@ def model_predictions():
     triang = mpl.tri.Triangulation(x,y, mat_data['tris'])
     
     pred = model.predict(loader.load(), steps=loader.steps_per_epoch)
-    print(pred.shape)
-    print(mat_data['volt_dist'][:,0].shape)
+    plt.subplot(122, aspect='equal')
     plt.tricontourf(triang, pred[:x.shape[0]].flatten())
+
+    plt.subplot(121, aspect='equal')
+    plt.tricontourf(triang, mat_data['volt_dist'][:,i])
     plt.show()
 
 def draw_process(mat_file):
