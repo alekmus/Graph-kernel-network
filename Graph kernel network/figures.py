@@ -13,7 +13,7 @@ def model_predictions():
     model.load_weights('weights\\EITNet_weights_260221')
     data = EIT_dataset('fig_mats')
 
-    i = 5
+    i = 7
 
     loader = utilities.WDJLoader(data[i:i+1], batch_size = 1,node_level=True)
     # model.evaluate(loader.load(), steps=loader.steps_per_epoch)
