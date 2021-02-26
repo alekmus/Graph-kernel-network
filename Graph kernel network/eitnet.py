@@ -28,9 +28,9 @@ def masked_MAPE(y_true, y_pred):
 
 
 def generate_EITNet():
-    model = gkn.GKNet(64, 5, [512*2,512*2, 256, 256, 256])
+    model = gkn.GKNet(64, 5, [512*2,512, 256, 128, 128])
     optimizer = tfk.optimizers.Adam(learning_rate=0.1, amsgrad=True)
-    model.compile(optimizer, loss='LogCosh', metrics=[masked_MAPE])
+    model.compile(optimizer, loss=masked_mse, metrics=[masked_MAPE])
     return model
 
 if __name__== '__main__':
@@ -41,7 +41,6 @@ if __name__== '__main__':
     data = EIT_dataset('mat_data')
     # Inplace operation
     np.random.shuffle(data)
-    data = data[:20]
     split_i = int(data.n_graphs*0.2)
     val_data = data[:split_i]
     train_data = data[split_i:]
