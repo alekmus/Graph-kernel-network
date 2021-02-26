@@ -19,20 +19,18 @@ def mask_zero_preds(y_true, y_pred):
     return y_true, y_pred
 
 def masked_mse(y_true, y_pred):
-    # Ignores losses everywhere but at the measuring electrode
     masked_y_true, masked_y_pred = mask_zero_preds(y_true, y_pred)
     return tfk.losses.mean_squared_error(masked_y_true, masked_y_pred)
 
 def masked_MAPE(y_true, y_pred):
-    # Ignores values everywhere but at the measuring electrodes
     masked_y_true, masked_y_pred = mask_zero_preds(y_true, y_pred)
     return tfk.losses.mean_absolute_percentage_error(masked_y_true, masked_y_pred)
 
 
 def generate_EITNet():
-    model = gkn.GKNet(64, 4, [512, 256, 128, 128])
-    optimizer = tfk.optimizers.Adam(learning_rate=0.000001, amsgrad=True)
-    model.compile(optimizer, loss=masked_mse, metrics=[masked_MAPE])
+    model = gkn.GKNet(64, 5, [512, 256, 256, 128, 512, 256, 256, 128])
+    optimizer = tfk.optimizers.SGD(learning_rate=0.0001, amsgrad=True)
+    model.compile(optimizer, loss='mse', metrics=[masked_MAPE])
     return model
 
 if __name__== '__main__':
