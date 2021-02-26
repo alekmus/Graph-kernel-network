@@ -28,9 +28,9 @@ def masked_MAPE(y_true, y_pred):
 
 
 def generate_EITNet():
-    model = gkn.GKNet(64, 5, [512, 256, 256, 128, 512, 256, 256, 128])
-    optimizer = tfk.optimizers.SGD(learning_rate=0.00001, momentum=0.7)
-    model.compile(optimizer, loss='mse', metrics=[masked_MAPE])
+    model = gkn.GKNet(64, 5, [512*2,512*2, 256, 256, 256])
+    optimizer = tfk.optimizers.Adam(learning_rate=0.0001, amsgrad=True)
+    model.compile(optimizer, loss='LogCosh', metrics=[masked_MAPE])
     return model
 
 if __name__== '__main__':
