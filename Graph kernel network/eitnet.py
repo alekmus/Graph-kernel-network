@@ -49,7 +49,7 @@ if __name__== '__main__':
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
     model = generate_EITNet()
     
-    model.load_weights("weights/EITNet_weights_260221")                
+    model.load_weights("weights/EITNet_weights_270221")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
