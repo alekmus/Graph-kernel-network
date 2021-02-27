@@ -3,7 +3,7 @@ Graph kernel network/sample.py
 Graph kernel network/__pycache__/
 Graph kernel network/.vscode/
 Graph kernel network/graph_data/
-Graph kernel network/weights/*
+
 Graph kernel network/test_mat_data/
 Graph kernel network/test_graph_data/
 .venv/*
