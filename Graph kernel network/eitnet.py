@@ -35,13 +35,13 @@ def generate_EITNet():
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 5
+    EPOCHS = 3
     
     # Load data and convert .mat files if necessary
     data = EIT_dataset('mat_data')
     # Inplace operation
     np.random.shuffle(data)
-    split_i = int(data.n_graphs*0.2)
+    split_i = int(data.n_graphs*0.1)
     val_data = data[:split_i]
     train_data = data[split_i:]
     # Define loader to create minibatches
