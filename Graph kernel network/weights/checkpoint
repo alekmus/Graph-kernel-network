@@ -1,0 +1,2 @@
+model_checkpoint_path: "eit_checkp"
+all_model_checkpoint_paths: "eit_checkp"
