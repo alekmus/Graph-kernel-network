@@ -35,10 +35,10 @@ def generate_EITNet():
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 7
+    EPOCHS = 5
     
     # Load data and convert .mat files if necessary
-    data = EIT_dataset('mat_data')
+    data = EIT_dataset('../input/mat-data/mat_data')
     # Inplace operation
     np.random.shuffle(data)
     split_i = int(data.n_graphs*0.1)
