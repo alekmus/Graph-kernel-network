@@ -61,7 +61,7 @@ def load_data_from_mat(file_location):
                           "meas_pattern": measurement patterns, 
                           "measurements": measurements at electrodes for each measurement pattern, 
                           "conductivity": conductivity distribution within the object,
-                          "volts": voltage distribution on nodes}
+                          "volt_dist": voltage distribution on nodes}
     """
     mat_file = sio.loadmat(file_location, struct_as_record=False)
     stim_pattern, meas_pattern = read_patterns(mat_file)
