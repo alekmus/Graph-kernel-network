@@ -1,2 +1,2 @@
-model_checkpoint_path: "eit_checkp"
-all_model_checkpoint_paths: "eit_checkp"
+model_checkpoint_path: "EITNet_weights_020321"
+all_model_checkpoint_paths: "EITNet_weights_020321"
