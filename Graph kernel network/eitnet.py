@@ -50,7 +50,7 @@ if __name__== '__main__':
     # Define loader to create minibatches
     loader = utilities.WDJLoader(train_data, batch_size = BATCH_SIZE,node_level=True)
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
-    with tpu_strategy.scope()
+    with tpu_strategy.scope():
         model = generate_EITNet()
     
     model.load_weights("weights/eit_checkp")                
