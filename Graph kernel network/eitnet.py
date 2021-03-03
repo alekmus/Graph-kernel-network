@@ -35,7 +35,7 @@ def generate_EITNet():
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 7
+    EPOCHS = 15
     
     # Load data and convert .mat files if necessary
     data = EIT_dataset('/kaggle/input/mat-data/mat_data')
