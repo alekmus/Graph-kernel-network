@@ -93,34 +93,49 @@ def draw_gkn(mat_file):
     cent = utilities.centroids_from_tris(mat_data['nodes'], mat_data['tris'])
     volt = mat_data['volt_dist'][:,0]
     cond = mat_data['conductivity']
-    cond = np.concatenate([np.ones(x.shape[0]),cond])
-    
-    
-    hidden = (np.random.rand(*cond.shape)*2-1)*0.4
-    out = np.concatenate([volt+1, np.ones(cent.shape[0])])
-    cond = np.concatenate([cond, hidden, out], axis=0)
+    cond = np.concatenate([np.ones(x.shape[0]),cond])**2
     cond /= np.max(cond)
-    cond = np.log10(cond+1)
+    
+    hidden = (np.random.rand(*cond.shape)*2-1)**2
+    hidden /= np.max(hidden)
+    out = np.concatenate([volt+1, np.ones(cent.shape[0])])**2
+    out /=np.max(out)
+    cond = np.concatenate([cond, hidden, out], axis=0)
+    
+    
 
     nodes = np.concatenate((mat_data['nodes'],cent),axis = 0)
-    pos1 = np.concatenate((nodes, np.zeros((nodes.shape[0],1))), axis=1)
-    pos2 = np.concatenate((nodes, np.ones((nodes.shape[0],1))), axis=1)
+    pos1 = np.concatenate((nodes, -2.5*np.ones((nodes.shape[0],1))), axis=1)
+    pos2 = np.concatenate((nodes,  np.zeros((nodes.shape[0],1))), axis=1)
     pos3 = np.concatenate((nodes, 2*np.ones((nodes.shape[0],1))), axis=1)
     
 
     pos = np.concatenate([pos1,pos2,pos3], axis=0)
-    connections = utilities.generate_ball_neighbourhoods(nodes, r=0.1)[0]
+    connections = utilities.generate_ball_neighbourhoods(nodes, r=0.08)[0]
     connections = block_diag(connections, connections, connections)
     G = nx.from_numpy_array(connections)
-    pts = mlab.points3d(pos[:,0], pos[:,1], pos[:,2], scale_factor=0.05, scale_mode="none", colormap='coolwarm')
+
+
+    #############
+    #  Figures  #
+    #############
+    mlab.figure(bgcolor=(1,1,1))
+    pts = mlab.points3d(
+        pos[:,0]*1.5, 
+        pos[:,1]*1.5, 
+        pos[:,2], 
+        scale_factor=0.05, 
+        scale_mode="none", 
+        colormap='coolwarm'
+    )
     pts.mlab_source.dataset.point_data.scalars = cond
 
     pts.mlab_source.dataset.lines = np.array(list(G.edges()))
-    tube = mlab.pipeline.tube(pts, tube_radius=0.005)
-    mlab.pipeline.surface(tube, color=(0.8, 0.8, 0.8))
+    tube = mlab.pipeline.tube(pts, tube_radius=0.002)
+    mlab.pipeline.surface(tube, color=(0, 0, 0))
     mlab.show()
 
 if __name__ == '__main__':
     #draw_process(r"fig_mats\data1.mat")
-    model_predictions()
-    #draw_gkn(r"fig_mats\data1.mat")
+    #model_predictions()
+    draw_gkn(r"fig_mats\data1.mat")
