@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from tensorflow.python.distribute import tpu_strategy
 import GKN as gkn
 from graph import EIT_dataset
 import datetime
 import tensorflow.keras as tfk
+import tensorflow as tf
 import spektral, utilities
 import tensorflow.keras.backend as K
 import numpy as np
@@ -34,9 +36,10 @@ def generate_EITNet():
     return model
 
 if __name__== '__main__':
-    BATCH_SIZE = 1
+    BATCH_SIZE = 128*8
     EPOCHS = 3
-    
+    tpu = tf.distribute.cluster_resolver.TFConfigClusterResolver.connect()
+    tpu_strategy = tf.distribute.experimental.TPUStrategy(tpu)
     # Load data and convert .mat files if necessary
     data = EIT_dataset('mat_data')
     # Inplace operation
@@ -47,7 +50,8 @@ if __name__== '__main__':
     # Define loader to create minibatches
     loader = utilities.WDJLoader(train_data, batch_size = BATCH_SIZE,node_level=True)
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
-    model = generate_EITNet()
+    with tpu_strategy.scope()
+        model = generate_EITNet()
     
     model.load_weights("weights/eit_checkp")                
     history = model.fit(loader.load(), 
