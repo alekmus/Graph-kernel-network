@@ -12,7 +12,7 @@ def model_predictions():
     model = eitnet.generate_EITNet()
 
 
-    model.load_weights('weights\\EITNet_weights_260221')
+    model.load_weights('weights\\eit_checkp')
     data = EIT_dataset('fig_mats')
 
     i = 7
@@ -85,5 +85,5 @@ def draw_gkn():
 
 if __name__ == '__main__':
     #draw_process(r"fig_mats\data1.mat")
-    #model_predictions()
-    draw_gkn()
+    model_predictions()
+    #draw_gkn()
