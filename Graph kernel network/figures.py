@@ -18,7 +18,7 @@ def model_predictions():
     model.load_weights('weights\\EITNet_weights_020321')
     data = EIT_dataset('fig_mats')
 
-    i = 7
+    i = 1
 
     loader = utilities.WDJLoader(data[i:i+1], batch_size = 1,node_level=True)
     # model.evaluate(loader.load(), steps=loader.steps_per_epoch)
@@ -122,5 +122,5 @@ def draw_gkn(mat_file):
 
 if __name__ == '__main__':
     #draw_process(r"fig_mats\data1.mat")
-    #model_predictions()
-    draw_gkn(r"fig_mats\data1.mat")
+    model_predictions()
+    #draw_gkn(r"fig_mats\data1.mat")
