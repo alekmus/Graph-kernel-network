@@ -38,7 +38,7 @@ def generate_EITNet():
 if __name__== '__main__':
     BATCH_SIZE = 128*8
     EPOCHS = 3
-    tpu = tf.distribute.cluster_resolver.TFConfigClusterResolver.connect()
+    tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     tpu_strategy = tf.distribute.experimental.TPUStrategy(tpu)
     # Load data and convert .mat files if necessary
     data = EIT_dataset('mat_data')
