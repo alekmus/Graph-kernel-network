@@ -8,7 +8,7 @@ import utilities, random, data_loading
 import networkx as nx
 import numpy as np
 import spektral
-
+import scipy
 def model_predictions():
     model = eitnet.generate_EITNet()
 
@@ -25,7 +25,7 @@ def model_predictions():
     y = mat_data['nodes'][:,1]
 
     triang = mpl.tri.Triangulation(x,y, mat_data['tris'])
-    print
+   
     for i in range(k):
         mesh = data[subset][i:i+1]
         loader = utilities.WDJLoader(
@@ -37,28 +37,23 @@ def model_predictions():
         pred = model.predict(loader.load(), steps=loader.steps_per_epoch)
         pred = pred[:x.shape[0]].flatten()
         fem = mesh[0].y[:n_nodes]
-        cond = mesh[0].x[-n_nodes:]
-
-        plt.subplot(k,4,1+i*4, aspect='equal')
-        plt.tricontourf(triang, cond[:,3])
-        plt.axis('off')
-        if i == 0:
-            plt.gca().set_title('Conductivity distribution')
 
 
-        plt.subplot(k,4,1+i*4+2, aspect='equal')
-        plt.tricontourf(triang, pred)
+        
+        plt.subplot(k,3,1+i*3, aspect='equal')
+        plt.tricontourf(triang, fem)
         plt.axis('off')
         if i == 0:
             plt.gca().set_title('FEM solution')
 
-        plt.subplot(k,4,1+i*4+1, aspect='equal')
-        plt.tricontourf(triang, fem)
+        plt.subplot(k,3,1+i*3+1, aspect='equal')
+        plt.tricontourf(triang, pred)
         plt.axis('off')
         if i == 0:
             plt.gca().set_title('EITNet solution')
 
-        plt.subplot(k,4,1+i*4+3, aspect='equal')
+
+        plt.subplot(k,3,1+i*3+2, aspect='equal')
         plt.tricontourf(triang, pred/np.linalg.norm(pred)-fem/np.linalg.norm(fem))
         plt.axis('off')
         if i == 0:
