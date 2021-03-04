@@ -7,6 +7,7 @@ from graph import EIT_dataset
 import utilities, random, data_loading
 import networkx as nx
 import numpy as np
+import spektral
 
 def model_predictions():
     model = eitnet.generate_EITNet()
@@ -15,23 +16,59 @@ def model_predictions():
     model.load_weights('weights\\eit_checkp')
     data = EIT_dataset('fig_mats')
 
-    i = 7
+    k = 4
 
-    loader = utilities.WDJLoader(data[i:i+1], batch_size = 1,node_level=True)
-    # model.evaluate(loader.load(), steps=loader.steps_per_epoch)
+    subset = random.choices(list(range(data.n_graphs)), k=k)
     mat_data = data_loading.load_data_from_mat("mat_Data\\data1.mat")
 
     x = mat_data['nodes'][:,0]
     y = mat_data['nodes'][:,1]
-    triang = mpl.tri.Triangulation(x,y, mat_data['tris'])
-    
-    pred = model.predict(loader.load(), steps=loader.steps_per_epoch)
-    plt.subplot(122, aspect='equal')
-    plt.tricontourf(triang, pred[:x.shape[0]].flatten())
 
-    plt.subplot(121, aspect='equal')
-    plt.tricontourf(triang, mat_data['volt_dist'][:,i])
+    triang = mpl.tri.Triangulation(x,y, mat_data['tris'])
+    print
+    for i in range(k):
+        mesh = data[subset][i:i+1]
+        loader = utilities.WDJLoader(
+            mesh, 
+            batch_size = 1,
+            node_level=True
+        )
+        n_nodes = mat_data['volt_dist'][:,0].shape[0]
+        pred = model.predict(loader.load(), steps=loader.steps_per_epoch)
+        pred = pred[:x.shape[0]].flatten()
+        fem = mesh[0].y[:n_nodes]
+        cond = mesh[0].x[-n_nodes:]
+
+        plt.subplot(k,4,1+i*4, aspect='equal')
+        plt.tricontourf(triang, cond[:,3])
+        plt.axis('off')
+        if i == 0:
+            plt.gca().set_title('Conductivity distribution')
+
+
+        plt.subplot(k,4,1+i*4+2, aspect='equal')
+        plt.tricontourf(triang, pred)
+        plt.axis('off')
+        if i == 0:
+            plt.gca().set_title('FEM solution')
+
+        plt.subplot(k,4,1+i*4+1, aspect='equal')
+        plt.tricontourf(triang, fem)
+        plt.axis('off')
+        if i == 0:
+            plt.gca().set_title('EITNet solution')
+
+        plt.subplot(k,4,1+i*4+3, aspect='equal')
+        plt.tricontourf(triang, pred/np.linalg.norm(pred)-fem/np.linalg.norm(fem))
+        plt.axis('off')
+        if i == 0:
+            plt.gca().set_title('Difference')
     plt.show()
+
+ 
+    
+
+    
 
 def draw_process(mat_file):
     mat_data = data_loading.load_data_from_mat(mat_file)
