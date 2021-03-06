@@ -38,7 +38,7 @@ if __name__== '__main__':
     EPOCHS = 15
     
     # Load data and convert .mat files if necessary
-    data = EIT_dataset(r'/kaggle/input/mat-data/mat_data')
+    data = EIT_dataset(r'/kaggle/input/mat-data/')
     # Inplace operation
     np.random.shuffle(data)
     split_i = int(data.n_graphs*0.1)
