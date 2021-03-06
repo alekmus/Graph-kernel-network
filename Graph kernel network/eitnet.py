@@ -35,7 +35,7 @@ def generate_EITNet():
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 100
+    EPOCHS = 500
     
     # Load data and convert .mat files if necessary
     data = EIT_dataset(r'/kaggle/input/mat-data/')
@@ -49,7 +49,7 @@ if __name__== '__main__':
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
     model = generate_EITNet()
     
-    #model.load_weights("weights/clean_eit_checkp")                
+    model.load_weights("weights/clean_eit_checkp")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
