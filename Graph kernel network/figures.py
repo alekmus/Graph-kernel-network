@@ -14,6 +14,7 @@ def model_predictions():
 
     model.load_weights('weights\\eit_checkp')
     data = EIT_dataset('fig_mats')
+    
 
     i = 7
 
