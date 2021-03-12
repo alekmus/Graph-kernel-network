@@ -37,7 +37,7 @@ def generate_EITNet():
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 3
+    EPOCHS = 5
     # Load data and convert .mat files if necessary
     data = EIT_dataset('mat_data')
     # Inplace operation
