@@ -58,7 +58,7 @@ if __name__== '__main__':
               validation_batch_size=BATCH_SIZE,
               validation_steps=val_loader.steps_per_epoch,
               steps_per_epoch=loader.steps_per_epoch,
-              callbacks=[tfk.callbacks.ModelCheckpoint("weights/eit_checkp",monitor='val_loss',save_best_only=True)])
+              callbacks=[tfk.callbacks.ModelCheckpoint("weights/eit_checkp",save_freq=1000)])
     print(model.summary())
     model.save_weights(f'weights/EITNet_weights_{datetime.datetime.now().strftime("%d%m%y")}', overwrite=True)
 
