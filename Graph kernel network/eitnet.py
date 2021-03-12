@@ -39,12 +39,14 @@ if __name__== '__main__':
     BATCH_SIZE = 1
     EPOCHS = 15
     # Load data and convert .mat files if necessary
-    data = EIT_dataset(r'/kaggle/input/mat-data/mat_data')
+    val_data = EIT_dataset(r'/kaggle/input/mat-data/mat_data')
+    train_data = EIT_dataset(r'/kaggle/input/clean-mat-data/mat_data')
+    
     # Inplace operation
-    np.random.shuffle(data)
-    split_i = int(data.n_graphs*0.1)
-    val_data = data[:split_i]
-    train_data = data[split_i:]
+    #np.random.shuffle(data)
+    #split_i = int(data.n_graphs*0.1)
+    #val_data = data[:split_i]
+    #train_data = data[split_i:]
     # Define loader to create minibatches
     loader = utilities.WDJLoader(train_data, batch_size = BATCH_SIZE,node_level=True)
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
@@ -58,7 +60,7 @@ if __name__== '__main__':
               validation_batch_size=BATCH_SIZE,
               validation_steps=val_loader.steps_per_epoch,
               steps_per_epoch=loader.steps_per_epoch,
-              callbacks=[tfk.callbacks.ModelCheckpoint("weights/eit_checkp",monitor='val_loss', save_freq=1000)])
+              callbacks=[tfk.callbacks.ModelCheckpoint("weights/eit_checkp",monitor='val_loss', save_best_only=True)])
     print(model.summary())
     model.save_weights(f'weights/EITNet_weights_{datetime.datetime.now().strftime("%d%m%y")}', overwrite=True)
 
