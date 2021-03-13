@@ -39,14 +39,14 @@ if __name__== '__main__':
     BATCH_SIZE = 1
     EPOCHS = 15
     # Load data and convert .mat files if necessary
-    val_data = EIT_dataset(r'/kaggle/input/mat-data/mat_data')
-    train_data = EIT_dataset(r'/kaggle/input/clean-mat-data/mat_data')
+    data = EIT_dataset(r'/kaggle/input/mat-data/mat_data')
+    #train_data = EIT_dataset(r'/kaggle/input/clean-mat-data/mat_data')
     
     # Inplace operation
-    #np.random.shuffle(data)
-    #split_i = int(data.n_graphs*0.1)
-    #val_data = data[:split_i]
-    #train_data = data[split_i:]
+    np.random.shuffle(data)
+    split_i = int(data.n_graphs*0.1)
+    val_data = data[:split_i]
+    train_data = data[split_i:]
     # Define loader to create minibatches
     loader = utilities.WDJLoader(train_data, batch_size = BATCH_SIZE,node_level=True)
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE,node_level=True)
