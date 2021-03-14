@@ -29,7 +29,7 @@ class GKNet(tfk.models.Model):
             self.conv_layers.append(spektral.layers.ECCConv(channels, kernel_layers, activation=tf.nn.leaky_relu))
             self.norm_layers.append(
                 tfa.layers.InstanceNormalization(
-                    axis=2, 
+                    axis=1, 
                     center=True, 
                     scale=True,
                     beta_initializer="random_uniform",
