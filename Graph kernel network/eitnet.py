@@ -53,16 +53,16 @@ if __name__== '__main__':
    
     model = generate_EITNet()
     
-    model.load_weights("weights/eit_checkp")                
+    #model.load_weights("weights/norm_eit_checkp")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
               validation_batch_size=BATCH_SIZE,
               validation_steps=val_loader.steps_per_epoch,
               steps_per_epoch=loader.steps_per_epoch,
-              callbacks=[tfk.callbacks.ModelCheckpoint("weights/eit_checkp",save_freq=1000)])
+              callbacks=[tfk.callbacks.ModelCheckpoint("weights/norm_eit_checkp",save_freq=1000)])
     print(model.summary())
-    model.save_weights(f'weights/EITNet_weights_{datetime.datetime.now().strftime("%d%m%y")}', overwrite=True)
+    model.save_weights(f'weights/norm_EITNet_weights_{datetime.datetime.now().strftime("%d%m%y")}', overwrite=True)
 
     import matplotlib.pyplot as plt
 
