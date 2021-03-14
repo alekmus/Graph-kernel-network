@@ -13,7 +13,7 @@ def model_predictions():
     model = eitnet.generate_EITNet()
 
 
-    model.load_weights('weights\\eit_checkp')
+    model.load_weights('weights\\norm_eit_checkp')
     data = EIT_dataset('fig_mats')
 
     k = 4
