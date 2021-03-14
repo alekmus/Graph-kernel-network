@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow_addons as tfa
 import tensorflow.keras as tfk
 import spektral
 import tensorflow.keras.backend as K
@@ -23,9 +24,18 @@ class GKNet(tfk.models.Model):
         super().__init__(name=name, **kwargs)
         self.depth = depth
         self.conv_layers = []
+        self.norm_layers = []
         for _ in range(depth-1):
             self.conv_layers.append(spektral.layers.ECCConv(channels, kernel_layers, activation=tf.nn.leaky_relu))
-            
+            self.norm_layers.append(
+                tfa.layers.InstanceNormalization(
+                    axis=1, 
+                    center=True, 
+                    scale=True,
+                    beta_initializer="random_uniform",
+                    gamma_initializer="random_uniform"
+                )
+            )
 
         self.output_layer = spektral.layers.ECCConv(1,kernel_layers, activation='linear')
     
@@ -35,7 +45,8 @@ class GKNet(tfk.models.Model):
         E = input[2]
 
         
-        for conv in self.conv_layers:
+        for conv,norm in zip(self.conv_layers,self.norm_layers):
             X = conv([X,A,E])
+            X = norm(X)
         out = self.output_layer([X,A,E])
         return out
