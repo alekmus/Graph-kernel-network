@@ -35,7 +35,7 @@ def model_predictions():
         )
         n_nodes = mat_data['volt_dist'][:,0].shape[0]
         pred = model.predict(loader.load(), steps=loader.steps_per_epoch)
-        pred = pred[:x.shape[0]].flatten()
+        pred = pred[:n_nodes].flatten()
         fem = mesh[0].y[:n_nodes]
 
 
