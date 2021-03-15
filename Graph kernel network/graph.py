@@ -91,7 +91,6 @@ class mat_graph(spektral.data.Graph):
         inj_cur = np.copy(el_mask)
         out_cur = np.copy(el_mask)
         inj_cur[electrode_indices[stim_mask>0]] = 1
-        
         out_cur[electrode_indices[stim_mask<0]]=1
         
         coord_feats = np.concatenate([
