@@ -12,15 +12,15 @@ def model_predictions():
     model = eitnet.generate_EITNet()
 
 
-    model.load_weights('weights\\eit_checkp')
+    model.load_weights('weights\\norm_eit_checkp')
     data = EIT_dataset('fig_mats')
     
 
     i = 7
 
     loader = utilities.WDJLoader(data[i:i+1], batch_size = 1,node_level=True)
-    # model.evaluate(loader.load(), steps=loader.steps_per_epoch)
-    mat_data = data_loading.load_data_from_mat("mat_Data\\data1.mat")
+    #model.evaluate(loader.load(), steps=loader.steps_per_epoch)
+    mat_data = data_loading.load_data_from_mat("fig_mats\\data1.mat")
 
     x = mat_data['nodes'][:,0]
     y = mat_data['nodes'][:,1]
