@@ -19,7 +19,7 @@ def model_predictions():
     k = 4
 
     subset = random.choices(list(range(data.n_graphs)), k=k)
-    mat_data = data_loading.load_data_from_mat("mat_Data\\data1.mat")
+    mat_data = data_loading.load_data_from_mat("fig_mats\\data1.mat")
 
     x = mat_data['nodes'][:,0]
     y = mat_data['nodes'][:,1]
