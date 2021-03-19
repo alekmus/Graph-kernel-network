@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tensorflow_addons as tfa
+import tensorflow as tf
 import tensorflow.keras as tfk
 import spektral
 import tensorflow.keras.backend as K
@@ -13,7 +13,7 @@ class GKNet(tfk.models.Model):
                  **kwargs):
         """
         Args:
-            channels (int): Number of output layers in edge convolution.
+            channels (int): Number of output features in edge convolution.
             depth (int): Number of message passing time steps.
             kernel_layers (list): A list of integers denoting number of neurons in each hidden layer
                                     of the multilayer perceptron used in the edge convolution.
@@ -23,10 +23,10 @@ class GKNet(tfk.models.Model):
         
         super().__init__(name=name, **kwargs)
         self.depth = depth
-        self.conv_layer = spektral.layers.ECCConv(channels, kernel_layers, activation=tf.nn.leaky_relu)
+        self.conv_layer = spektral.layers.ECCConv(channels, kernel_layers)
         self.norm_layers = [tfk.layers.LayerNormalization() for _ in range(depth)]     
 
-        self.output_layer = spektral.layers.ECCConv(1,kernel_layers, activation='linear')
+        
     
     def call(self, input):
         X = input[0]
@@ -35,7 +35,8 @@ class GKNet(tfk.models.Model):
 
         for i in range(self.depth):
             X = self.conv_layer([X,A,E])
+            X = tf.nn.leaky_relu(X)
             X = self.norm_layers[i](X)
         
-        out = self.output_layer([X,A,E])
-        return out
+        out = self.conv_layer([X,A,E])
+        return tf.math.reduce_max(out,axis=1, keepdims=True)
