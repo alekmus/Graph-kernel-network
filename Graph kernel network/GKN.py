@@ -25,7 +25,7 @@ class GKNet(tfk.models.Model):
         self.depth = depth
         self.conv_layer = spektral.layers.ECCConv(channels, kernel_layers)
         self.norm_layers = [tfk.layers.LayerNormalization() for _ in range(depth)]     
-
+        self.output_layer = spektral.layers.ECCConv(1, kernel_layers)
         
     
     def call(self, input):
@@ -38,5 +38,5 @@ class GKNet(tfk.models.Model):
             X = tf.nn.leaky_relu(X)
             X = self.norm_layers[i](X)
         
-        out = self.conv_layer([X,A,E])
-        return tf.math.reduce_max(out,axis=1, keepdims=True)
+        out = self.output_layer([X,A,E])
+        return out
