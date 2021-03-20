@@ -30,7 +30,7 @@ def masked_MAPE(y_true, y_pred):
 
 
 def generate_EITNet():
-    model = gkn.GKNet(4, 8, [128, 64, 64*4, 64*2, 64*2, 32])
+    model = gkn.GKNet(6, 8, [128, 64, 64*4, 64*2, 64*2, 32])
     optimizer = tfk.optimizers.RMSprop(learning_rate=0.01, centered=True, momentum=0.8)
     model.compile(optimizer, loss='mse', metrics=['mape'])
     return model
@@ -51,7 +51,7 @@ if __name__== '__main__':
    
     model = generate_EITNet()
     
-    model.load_weights("weights/norm_eit_checkp")                
+    #model.load_weights("weights/norm_eit_checkp")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
