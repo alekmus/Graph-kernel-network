@@ -51,7 +51,7 @@ if __name__== '__main__':
    
     model = generate_EITNet()
     
-    #model.load_weights("weights/norm_eit_checkp")                
+    model.load_weights("weights/norm_eit_checkp")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
