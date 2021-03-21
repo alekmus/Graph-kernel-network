@@ -33,6 +33,7 @@ def model_predictions():
             batch_size = 1,
             node_level=True
         )
+        model.evaluate(loader.load(), steps=loader.steps_per_epoch)
         n_nodes = mat_data['volt_dist'][:,0].shape[0]
         pred = model.predict(loader.load(), steps=loader.steps_per_epoch)
         pred = pred[:n_nodes].flatten()
