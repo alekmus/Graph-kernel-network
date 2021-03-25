@@ -40,6 +40,6 @@ class GKNet(tfk.models.Model):
             X = tf.nn.leaky_relu(X)
             X = self.norm_layers[i](X)
         X = tf.math.reduce_max(X, axis=1, keepdims=True)
-        for _ in range(5):
-            X = self.output_layer([X,A,E])
+        
+        X = self.output_layer([X,A,E])
         return X
