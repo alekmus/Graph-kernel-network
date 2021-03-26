@@ -42,4 +42,4 @@ class GKNet(tfk.models.Model):
         X = tf.math.reduce_max(X, axis=1, keepdims=True)
         
         X = self.output_layer([X,A,E])
-        return X
+        return X[:313]

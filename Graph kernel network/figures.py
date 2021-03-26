@@ -13,14 +13,15 @@ def model_predictions():
     model = eitnet.generate_EITNet()
 
 
-    model.load_weights('weights\\norm_eit_checkp')
+    #model.load_weights('weights\\norm_eit_checkp')
     data = EIT_dataset('fig_mats')
 
     k = 4
 
     subset = random.choices(list(range(data.n_graphs)), k=k)
     mat_data = data_loading.load_data_from_mat("fig_mats\\data1.mat")
-
+    n_nodes = mat_data['volt_dist'][:,0].shape[0]
+    print(n_nodes)
     x = mat_data['nodes'][:,0]
     y = mat_data['nodes'][:,1]
 
@@ -34,7 +35,7 @@ def model_predictions():
             node_level=True
         )
         model.evaluate(loader.load(), steps=loader.steps_per_epoch)
-        n_nodes = mat_data['volt_dist'][:,0].shape[0]
+        
         pred = model.predict(loader.load(), steps=loader.steps_per_epoch)
         pred = pred[:n_nodes].flatten()
         fem = mesh[0].y[:n_nodes]
