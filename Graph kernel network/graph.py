@@ -80,9 +80,9 @@ class mat_graph(spektral.data.Graph):
             np.ndarray: Feature vector for the graph nodes.
         """
         coord_feats = np.concatenate([
-            node_coords, 
+            #node_coords, 
             np.ones(node_coords.shape[0]).reshape(-1,1), 
-            np.zeros(node_coords.shape[0]).reshape(-1,1),
+            np.ones(node_coords.shape[0]).reshape(-1,1),
         ], axis=1)
 
         el_mask = np.zeros(node_coords.shape[0])
@@ -101,7 +101,7 @@ class mat_graph(spektral.data.Graph):
 
 
         centroid_feats = np.concatenate([
-            centroids, 
+            #centroids, 
             np.zeros(centroids.shape[0]).reshape(-1,1), 
             conductivity.reshape(-1,1),
             np.zeros(centroids.shape[0]).reshape(-1,1),
