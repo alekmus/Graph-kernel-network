@@ -64,6 +64,8 @@ class mat_graph(spektral.data.Graph):
         node_features = np.concatenate([coord_features, centroid_features], axis=0)
         target = volts/np.linalg.norm(volts)
         target = np.concatenate([target, np.zeros(centroid_features.shape[0])],axis=0)
+        target = target.reshape(1,-1)
+        #print(target.shape)
         super().__init__(x = node_features, a = adjacency_matrix, e = edge_features, y = target)
 
 
@@ -72,7 +74,7 @@ class mat_graph(spektral.data.Graph):
            Feature vectors contain the following: [x: float, y: float, conductivity: float, in: [0,1], out: [0,1]]
            Conductivity at electrode nodes is set to 1.
         Args:
-            node_coords (np.ndarray): Coordinates for ccentroids of triangle elements.
+            node_coords (np.ndarray): Coordinates for centroids of triangle elements.
             electrode_coords (np.ndarray): Coordinates for the electrode midpoints.
             stimulation_pattern (np.array): Stimulation pattern.
             measurement_pattern (np.array): Measurement pattern
