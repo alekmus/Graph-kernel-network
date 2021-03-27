@@ -24,10 +24,10 @@ class GKNet(tfk.models.Model):
         super().__init__(name=name, **kwargs)
         self.depth = depth
         self.channels = channels
-        self.in_layer = spektral.layers.ECCConv(channels, kernel_layers)
+        self.in_layer = spektral.layers.ECCConv(channels)
         self.conv_layer = spektral.layers.ECCConv(channels, kernel_layers, aggregate='mean',activation=tf.nn.relu)
         #self.norm_layers = [tfk.layers.LayerNormalization() for _ in range(depth)]     
-        self.output_layer = spektral.layers.ECCConv(1, kernel_layers)
+        self.output_layer = spektral.layers.ECCConv(1)
         
     
     def call(self, input):
