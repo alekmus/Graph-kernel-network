@@ -64,7 +64,7 @@ class mat_graph(spektral.data.Graph):
         node_features = np.concatenate([coord_features, centroid_features], axis=0)
         target = volts/np.linalg.norm(volts)
         target = np.concatenate([target, np.zeros(centroid_features.shape[0])],axis=0)
-        target = target.reshape(1,-1)
+        #target = target.reshape(1,-1)
         #print(target.shape)
         super().__init__(x = node_features, a = adjacency_matrix, e = edge_features, y = target)
 
