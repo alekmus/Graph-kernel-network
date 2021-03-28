@@ -47,7 +47,7 @@ if __name__== '__main__':
     val_data = data[:split_i]
     train_data = data[split_i:]
     # Define loader to create minibatches
-    loader = spektral.data.loaders.SingleLoader(train_data[:1])
+    loader = utilities.WDJLoader(train_data, batch_size = BATCH_SIZE, node_level=True)
     val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE, node_level=True)
    
     model = generate_EITNet()
