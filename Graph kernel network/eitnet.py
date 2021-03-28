@@ -32,13 +32,13 @@ def masked_MAPE(y_true, y_pred):
 def generate_EITNet():
     width = 64
     model = gkn.GKNet(64, 7, [width, width])
-    optimizer = tfk.optimizers.RMSprop(learning_rate=0.00001, centered=True, momentum=0.8)
+    optimizer = tfk.optimizers.RMSprop(learning_rate=0.00001, centered=True, momentum=0.0)
     model.compile(optimizer, loss='mse', metrics=[masked_MAPE])
     return model
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 10000
+    EPOCHS = 50000
     # Load data and convert .mat files if necessary
     data = EIT_dataset('mat_data')
     # Inplace operation
