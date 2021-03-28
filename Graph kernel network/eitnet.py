@@ -30,7 +30,7 @@ def masked_MAPE(y_true, y_pred):
 
 
 def generate_EITNet():
-    width = 512
+    width = 512*2
     model = gkn.GKNet(64, 6, [width, width])
     optimizer = tfk.optimizers.RMSprop(learning_rate=0.00001, centered=True, momentum=0.0)
     model.compile(optimizer, loss='mse', metrics=[masked_MAPE])
@@ -47,12 +47,12 @@ if __name__== '__main__':
     val_data = data[:split_i]
     train_data = data[split_i:]
     # Define loader to create minibatches
-    loader = utilities.WDJLoader(train_data, batch_size = BATCH_SIZE, node_level=True)
-    val_loader = utilities.WDJLoader(val_data, batch_size = BATCH_SIZE, node_level=True)
+    loader = spektral.data.loaders.SingleLoader(train_data[:1])
+    val_loader = utilities.WDJLoader(val_data[:1], batch_size = BATCH_SIZE, node_level=True)
    
     model = generate_EITNet()
     
-    model.load_weights("weights/norm_eit_checkp")                
+    #model.load_weights("weights/norm_eit_checkp")                
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               validation_data=val_loader.load(),
