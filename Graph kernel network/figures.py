@@ -169,6 +169,6 @@ def draw_gkn():
 
 if __name__ == '__main__':
     #draw_process(r"fig_mats\data1.mat")
-    #model_predictions()
-    model_inc()
+    model_predictions()
+    #model_inc()
     #draw_gkn()
