@@ -38,7 +38,7 @@ def generate_EITNet():
 
 if __name__== '__main__':
     BATCH_SIZE = 1
-    EPOCHS = 200
+    EPOCHS = 300
     # Load data and convert .mat files if necessary
     data = EIT_dataset('mat_data')
     # Inplace operation
@@ -51,20 +51,21 @@ if __name__== '__main__':
     val_loader = utilities.WDJLoader(val_data[:1], batch_size = BATCH_SIZE, node_level=True)
    
     model = generate_EITNet()
-                   
+    model.load_weights("weights/norm_eit_checkp")                               
     history = model.fit(loader.load(), 
               epochs=EPOCHS,
               steps_per_epoch=loader.steps_per_epoch,
               callbacks=[tfk.callbacks.ModelCheckpoint("weights/norm_eit_checkp", save_freq=EPOCHS)])
 
-
-    for i in range(1,train_data.n_graphs):
-        loader = spektral.data.loaders.SingleLoader(data[i:i+1])
-        model.load_weights("weights/norm_eit_checkp")                
-        history = model.fit(loader.load(), 
-                epochs=EPOCHS,
-                steps_per_epoch=loader.steps_per_epoch,
-                callbacks=[tfk.callbacks.ModelCheckpoint("weights/norm_eit_checkp", save_freq=EPOCHS)])
+    for _ in range(3):
+        for i in range(1,train_data.n_graphs):
+            loader = spektral.data.loaders.SingleLoader(data[i:i+1])
+            #model.load_weights("weights/norm_eit_checkp")                
+            history = model.fit(loader.load(), 
+                    epochs=EPOCHS,
+                    steps_per_epoch=loader.steps_per_epoch,
+                    callbacks=[tfk.callbacks.ModelCheckpoint("weights/norm_eit_checkp", save_freq=EPOCHS)])
+        np.random.shuffle(data)
 
     #print(model.summary())
     model.save_weights(f'weights/norm_EITNet_weights_{datetime.datetime.now().strftime("%d%m%y")}', overwrite=True)
