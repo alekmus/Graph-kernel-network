@@ -57,7 +57,7 @@ if __name__== '__main__':
               steps_per_epoch=loader.steps_per_epoch,
               callbacks=[tfk.callbacks.ModelCheckpoint("weights/norm_eit_checkp", save_freq=EPOCHS)])
 
-    for _ in range(3):
+    for _ in range(2):
         for i in range(1,train_data.n_graphs):
             loader = spektral.data.loaders.SingleLoader(data[i:i+1])
             #model.load_weights("weights/norm_eit_checkp")                
@@ -69,16 +69,4 @@ if __name__== '__main__':
 
     #print(model.summary())
     model.save_weights(f'weights/norm_EITNet_weights_{datetime.datetime.now().strftime("%d%m%y")}', overwrite=True)
-
-    import matplotlib.pyplot as plt
-
-    plt.figure(figsize=(20,20))
-    plt.plot(history.history['val_loss'])
-    plt.plot(history.history['loss'])
-    plt.title('model loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
-    plt.savefig('convergence.png')
-
     model.evaluate(val_loader.load(), steps=val_loader.steps_per_epoch)

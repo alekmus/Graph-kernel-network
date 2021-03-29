@@ -9,6 +9,7 @@ import networkx as nx
 import numpy as np
 import spektral
 import scipy
+
 def model_predictions():
     model = eitnet.generate_EITNet()
 
@@ -56,15 +57,64 @@ def model_predictions():
 
 
         plt.subplot(k,3,1+i*3+2, aspect='equal')
-        plt.tricontourf(triang, pred/np.linalg.norm(pred)-fem/np.linalg.norm(fem))
+        plt.tricontourf(triang, pred-fem)
         plt.axis('off')
         if i == 0:
             plt.gca().set_title('Difference')
     plt.show()
 
- 
+
+def model_inc():
+    model = eitnet.generate_EITNet()
+
+
+    model.load_weights('weights\\norm_eit_checkp')
+    clean = EIT_dataset('clean')[:1]
+    inc1 = EIT_dataset('inclusion1')[:1]
+    inc2 = EIT_dataset('inclusion2')[:1]
+    inc3 = EIT_dataset('inclusion3')[:1]
+    inc4 = EIT_dataset('inclusion4')[:1]
+    
+    
+    mat_data = data_loading.load_data_from_mat("inclusion4\\data4.mat")
+    n_nodes = mat_data['volt_dist'][:,0].shape[0]
+    
+    x = mat_data['nodes'][:,0]
+    y = mat_data['nodes'][:,1]
+    tris = mat_data['tris']
+    triang = mpl.tri.Triangulation(x,y, tris)
+
     
 
+    clean_loader = spektral.data.loaders.SingleLoader(clean)
+    clean_pred = model.predict(clean_loader.load(), steps=clean_loader.steps_per_epoch)[:n_nodes].flatten()    
+
+    for i,inc in enumerate([inc1,inc2,inc3,inc4]):
+        inc_loader = spektral.data.loaders.SingleLoader(inc)
+        
+        
+        inc_pred = model.predict(inc_loader.load(), steps=inc_loader.steps_per_epoch)[:n_nodes].flatten()
+
+        plt.subplot(4, 2, 2+i*2, aspect='equal')
+        plt.tricontourf(triang, clean_pred-inc_pred)
+        plt.axis('off')
+        if i == 0:
+            plt.gca().set_title('EITNet differential image')
+        mat_data = data_loading.load_data_from_mat(f"inclusion{i+1}\\data{i+1}.mat")
+    
+        x = mat_data['nodes'][:,0]
+        y = mat_data['nodes'][:,1]
+        tris = mat_data['tris']
+        cond = mat_data['conductivity']
+        plt.subplot(4, 2, 1+i*2, aspect='equal')
+        plt.tripcolor(x, y , tris, facecolors=cond, cmap='Spectral')
+        plt.axis('off')
+        if i == 0:
+            plt.gca().set_title('FEM conductivity distribution')
+
+    plt.show()
+
+ 
     
 
 def draw_process(mat_file):
@@ -119,5 +169,6 @@ def draw_gkn():
 
 if __name__ == '__main__':
     #draw_process(r"fig_mats\data1.mat")
-    model_predictions()
+    #model_predictions()
+    model_inc()
     #draw_gkn()
