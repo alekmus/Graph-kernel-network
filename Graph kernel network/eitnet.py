@@ -30,7 +30,7 @@ def masked_MAPE(y_true, y_pred):
 
 
 def generate_EITNet():
-    width = 512*2
+    width = 512
     model = gkn.GKNet(64*2, 6, [width, width])
     optimizer = tfk.optimizers.RMSprop(learning_rate=0.0000001, centered=True, momentum=0.0)
     model.compile(optimizer, loss='mse', metrics=[masked_MAPE])
